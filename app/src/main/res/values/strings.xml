@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">AiTranslator</string>
+    <string name="mic_description">Audio Translation</string>
+    <string name="text_edit_description">Text to Translation</string>
+    <string name="image_edit_description">Image Translation</string>
+    <string name="create_new_translations_description">Create new translations</string>
+</resources>
