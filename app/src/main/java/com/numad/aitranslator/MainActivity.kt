@@ -1,5 +1,6 @@
 package com.numad.aitranslator
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,10 +12,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import com.numad.aitranslator.Navigation.Navigator
+import com.numad.aitranslator.navigation.Navigator
 import com.numad.aitranslator.ui.theme.AiTranslatorTheme
 
 class MainActivity : ComponentActivity() {
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -23,11 +25,10 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 Scaffold(
                     modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
+                ) { _ ->
                     Navigator(
                         navController = navController,
                         modifier = Modifier
-                            .padding(innerPadding)
                             .statusBarsPadding()
                             .safeDrawingPadding()
                     )

@@ -14,9 +14,14 @@ import androidx.compose.ui.unit.dp
 import com.numad.aitranslator.R
 
 @Composable
-fun ClickableImage(imageId: Int, descriptionId: Int, onClick: () -> Unit) {
+fun ClickableImage(
+    modifier: Modifier = Modifier,
+    imageId: Int,
+    descriptionId: Int,
+    onClick: () -> Unit
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(48.dp)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
@@ -31,7 +36,7 @@ fun ClickableImage(imageId: Int, descriptionId: Int, onClick: () -> Unit) {
 
 @Preview(name = "Example Image", showBackground = true)
 @Composable
-fun ClickableImagePreview() {
+private fun ClickableImagePreview() {
     ClickableImage(
         imageId = R.drawable.mic,
         descriptionId = R.string.mic_description,

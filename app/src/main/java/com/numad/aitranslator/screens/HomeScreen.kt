@@ -23,6 +23,7 @@ import androidx.navigation.NavController
 import com.numad.aitranslator.R
 import com.numad.aitranslator.components.Footer
 import com.numad.aitranslator.components.Header
+import com.numad.aitranslator.navigation.Screen
 import com.numad.aitranslator.ui.theme.Typography
 
 @Composable
@@ -42,8 +43,10 @@ fun HomeScreen(navController: NavController, modifier: Modifier) {
         Footer(
             modifier = modifier,
             onTabClick = { screenType ->
-                //TODO: Need to call another screen using the screenType
-                Log.d("HomeScreen", "HomeScreen: $screenType")
+                Log.d("Home Screen", "HomeScreen: ${Screen.Translate.createRoute(type = screenType)}")
+                navController.navigate(
+                    route = Screen.Translate.createRoute(type = screenType)
+                )
             }
         )
     }
@@ -73,7 +76,7 @@ fun NoTranslations() {
 
 @Composable
 @Preview(showBackground = true, showSystemUi = true, name = "Home Screen")
-fun HomeScreenPreview() {
+private fun HomeScreenPreview() {
     HomeScreen(
         navController = NavController(LocalContext.current),
         modifier = Modifier

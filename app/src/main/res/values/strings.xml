@@ -4,4 +4,6 @@
     <string name="text_edit_description">Text to Translation</string>
     <string name="image_edit_description">Image Translation</string>
     <string name="create_new_translations_description">Create new translations</string>
+    <string name="back_button_description">Back Button</string>
+    <string name="select_language_description">Select Language</string>
 </resources>

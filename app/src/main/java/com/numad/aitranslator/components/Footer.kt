@@ -13,10 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.numad.aitranslator.Navigation.ScreenInitParams
+import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.R
 import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.Pink40
@@ -51,26 +50,26 @@ fun Footer(
             imageId = R.drawable.mic,
             descriptionId = R.string.mic_description
         ) {
-            onTabClick(ScreenInitParams.AudioToTranslation.type)
+            onTabClick(TranslateScreenParams.AUDIO_TO_TRANSLATION)
         }
         ClickableImage(
             imageId = R.drawable.text_edit,
             descriptionId = R.string.text_edit_description
         ) {
-            onTabClick(ScreenInitParams.TextToTranslation.type)
+            onTabClick(TranslateScreenParams.TEXT_TO_TRANSLATION)
         }
         ClickableImage(
             imageId = R.drawable.photo,
             descriptionId = R.string.image_edit_description
         ) {
-            onTabClick(ScreenInitParams.ImageToTranslation.type)
+            onTabClick(TranslateScreenParams.IMAGE_TO_TRANSLATION)
         }
     }
 }
 
 @Preview(name = "FooterView", showBackground = true, showSystemUi = true)
 @Composable
-fun FooterView() {
+private fun FooterView() {
     Column(
         modifier = Modifier
             .fillMaxSize(),
