@@ -1,6 +1,5 @@
 package com.numad.aitranslator.screens
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,14 +21,18 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.numad.aitranslator.R
 import com.numad.aitranslator.components.ArrowComponent
@@ -40,16 +43,22 @@ import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
-
+import com.numad.aitranslator.viewmodels.TranslatorViewModel
 
 @Composable
 fun TranslatorScreen(
     navController: NavController,
     modifier: Modifier,
-    type: String = TranslateScreenParams.TEXT_TO_TRANSLATION
+    type: String = TranslateScreenParams.TEXT_TO_TRANSLATION,
+    viewModel: TranslatorViewModel = hiltViewModel()
 ) {
-    val languageFrom: MutableState<String> = remember { mutableStateOf("English") }
-    val languageTo: MutableState<String?> = remember { mutableStateOf(null) }
+    var inputText by remember { mutableStateOf("") }
+    val allowDetection: MutableState<Boolean> = remember { mutableStateOf(true) }
+
+    val translatedText by viewModel.translatedText.collectAsState()
+    val languageFrom by viewModel.languageFrom.collectAsState()
+    val languageTo by viewModel.languageTo.collectAsState()
+
     Column(
         modifier = modifier.fillMaxSize()
     ) {
@@ -88,13 +97,13 @@ fun TranslatorScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Absolute.SpaceEvenly
                 ) {
-                    LanguageHolder(language = languageFrom.value, onClick = { })
+                    LanguageHolder(language = languageFrom, onClick = { })
                     ArrowComponent(
                         modifier = Modifier
                             .size(width = 36.dp, height = 24.dp)
                             .align(Alignment.CenterVertically)
                     )
-                    LanguageHolder(language = languageTo.value, onClick = { })
+                    LanguageHolder(language = languageTo, onClick = { })
                 }
                 Spacer(
                     modifier = Modifier.height(
@@ -111,8 +120,19 @@ fun TranslatorScreen(
                     horizontalArrangement = Arrangement.Absolute.SpaceEvenly
                 ) {
                     TextField(
-                        value = "",
-                        onValueChange = {},
+                        value = inputText,
+                        onValueChange = {
+                            inputText = it
+                            if (viewModel.languageFrom.value == null &&
+                                allowDetection.value &&
+                                it.isNotEmpty() &&
+                                it.length > 5
+                            ) {
+                                viewModel.detectLanguage(it)
+                                allowDetection.value = false
+                            }
+                            viewModel.translateText(it)
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxSize()
@@ -134,7 +154,7 @@ fun TranslatorScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     TextField(
-                        value = "",
+                        value = translatedText,
                         enabled = false,
                         onValueChange = {},
                         readOnly = true,
@@ -159,7 +179,7 @@ fun TranslatorScreen(
                     )
                 }
             }
-            if(
+            if (
                 TranslateScreenParams.AUDIO_TO_TRANSLATION.equals(
                     type, ignoreCase = true
                 )
@@ -185,6 +205,6 @@ private fun TranslatorScreenPreview() {
         modifier = Modifier
             .statusBarsPadding()
             .safeDrawingPadding(),
-        type = TranslateScreenParams.AUDIO_TO_TRANSLATION
+        type = TranslateScreenParams.AUDIO_TO_TRANSLATION,
     )
 }
