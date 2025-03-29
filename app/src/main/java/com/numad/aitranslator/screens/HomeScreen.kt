@@ -2,6 +2,7 @@ package com.numad.aitranslator.screens
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import com.numad.aitranslator.R
 import com.numad.aitranslator.components.Footer
 import com.numad.aitranslator.components.Header
 import com.numad.aitranslator.navigation.Screen
+import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.ui.theme.Typography
 
 @Composable
@@ -38,12 +40,21 @@ fun HomeScreen(navController: NavController, modifier: Modifier) {
             // As of now, there is no persistent data.
             // We will only represent the scenario where there are no
             // translations.
-            NoTranslations()
+            NoTranslations(
+                onClick = {
+                    navController.navigate(
+                        route = Screen.Translate.createRoute(type = TranslateScreenParams.TEXT_TO_TRANSLATION)
+                    )
+                }
+            )
         }
         Footer(
             modifier = modifier,
             onTabClick = { screenType ->
-                Log.d("Home Screen", "HomeScreen: ${Screen.Translate.createRoute(type = screenType)}")
+                Log.d(
+                    "Home Screen",
+                    "HomeScreen: ${Screen.Translate.createRoute(type = screenType)}"
+                )
                 navController.navigate(
                     route = Screen.Translate.createRoute(type = screenType)
                 )
@@ -53,10 +64,13 @@ fun HomeScreen(navController: NavController, modifier: Modifier) {
 }
 
 @Composable
-fun NoTranslations() {
+fun NoTranslations(
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .clickable(onClick = onClick),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

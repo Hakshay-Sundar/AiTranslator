@@ -1,21 +1,25 @@
 package com.numad.aitranslator.utils
 
+import android.util.Log
+
 object LanguageUtils {
     private val detectionLanguageDictionary = HashMap<String, String>()
+    private val translationLanguageDictionary = HashMap<String, String>()
+    const val DETECTION_DICTIONARY = 1;
+    const val TRANSLATION_DICTIONARY = 2;
 
     init {
         setupDetectionLanguageDictionary()
+        setupTranslationLanguageDictionary()
     }
 
     private fun setupDetectionLanguageDictionary() {
         detectionLanguageDictionary["af"] = "Afrikaans"
         detectionLanguageDictionary["am"] = "Amharic"
         detectionLanguageDictionary["ar"] = "Arabic"
-        detectionLanguageDictionary["ar-Latn"] = "Arabic"
         detectionLanguageDictionary["az"] = "Azerbaijani"
         detectionLanguageDictionary["be"] = "Belarusian"
         detectionLanguageDictionary["bg"] = "Bulgarian"
-        detectionLanguageDictionary["bg-Latn"] = "Bulgarian"
         detectionLanguageDictionary["bn"] = "Bengali"
         detectionLanguageDictionary["bs"] = "Bosnian"
         detectionLanguageDictionary["ca"] = "Catalan"
@@ -26,7 +30,6 @@ object LanguageUtils {
         detectionLanguageDictionary["da"] = "Danish"
         detectionLanguageDictionary["de"] = "German"
         detectionLanguageDictionary["el"] = "Greek"
-        detectionLanguageDictionary["el-Latn"] = "Greek"
         detectionLanguageDictionary["en"] = "English"
         detectionLanguageDictionary["eo"] = "Esperanto"
         detectionLanguageDictionary["es"] = "Spanish"
@@ -45,7 +48,6 @@ object LanguageUtils {
         detectionLanguageDictionary["haw"] = "Hawaiian"
         detectionLanguageDictionary["he"] = "Hebrew"
         detectionLanguageDictionary["hi"] = "Hindi"
-        detectionLanguageDictionary["hi-Latn"] = "Hindi"
         detectionLanguageDictionary["hmn"] = "Hmong"
         detectionLanguageDictionary["hr"] = "Croatian"
         detectionLanguageDictionary["ht"] = "Haitian"
@@ -56,7 +58,6 @@ object LanguageUtils {
         detectionLanguageDictionary["is"] = "Icelandic"
         detectionLanguageDictionary["it"] = "Italian"
         detectionLanguageDictionary["ja"] = "Japanese"
-        detectionLanguageDictionary["ja-Latn"] = "Japanese"
         detectionLanguageDictionary["jv"] = "Javanese"
         detectionLanguageDictionary["ka"] = "Georgian"
         detectionLanguageDictionary["kk"] = "Kazakh"
@@ -89,7 +90,6 @@ object LanguageUtils {
         detectionLanguageDictionary["pt"] = "Portuguese"
         detectionLanguageDictionary["ro"] = "Romanian"
         detectionLanguageDictionary["ru"] = "Russian"
-        detectionLanguageDictionary["ru-Latn"] = "Russian"
         detectionLanguageDictionary["sd"] = "Sindhi"
         detectionLanguageDictionary["si"] = "Sinhala"
         detectionLanguageDictionary["sk"] = "Slovak"
@@ -116,16 +116,105 @@ object LanguageUtils {
         detectionLanguageDictionary["yi"] = "Yiddish"
         detectionLanguageDictionary["yo"] = "Yoruba"
         detectionLanguageDictionary["zh"] = "Chinese"
-        detectionLanguageDictionary["zh-Latn"] = "Chinese"
         detectionLanguageDictionary["zu"] = "Zulu"
+    }
+
+    private fun setupTranslationLanguageDictionary() {
+        translationLanguageDictionary["af"] = "Afrikaans"
+        translationLanguageDictionary["ar"] = "Arabic"
+        translationLanguageDictionary["be"] = "Belarusian"
+        translationLanguageDictionary["bg"] = "Bulgarian"
+        translationLanguageDictionary["bn"] = "Bengali"
+        translationLanguageDictionary["ca"] = "Catalan"
+        translationLanguageDictionary["cs"] = "Czech"
+        translationLanguageDictionary["cy"] = "Welsh"
+        translationLanguageDictionary["da"] = "Danish"
+        translationLanguageDictionary["de"] = "German"
+        translationLanguageDictionary["el"] = "Greek"
+        translationLanguageDictionary["en"] = "English"
+        translationLanguageDictionary["eo"] = "Esperanto"
+        translationLanguageDictionary["es"] = "Spanish"
+        translationLanguageDictionary["et"] = "Estonian"
+        translationLanguageDictionary["fa"] = "Persian"
+        translationLanguageDictionary["fi"] = "Finnish"
+        translationLanguageDictionary["fr"] = "French"
+        translationLanguageDictionary["ga"] = "Irish"
+        translationLanguageDictionary["gl"] = "Galician"
+        translationLanguageDictionary["gu"] = "Gujarati"
+        translationLanguageDictionary["he"] = "Hebrew"
+        translationLanguageDictionary["hi"] = "Hindi"
+        translationLanguageDictionary["hr"] = "Croatian"
+        translationLanguageDictionary["ht"] = "Haitian"
+        translationLanguageDictionary["hu"] = "Hungarian"
+        translationLanguageDictionary["id"] = "Indonesian"
+        translationLanguageDictionary["is"] = "Icelandic"
+        translationLanguageDictionary["it"] = "Italian"
+        translationLanguageDictionary["ja"] = "Japanese"
+        translationLanguageDictionary["ka"] = "Georgian"
+        translationLanguageDictionary["kn"] = "Kannada"
+        translationLanguageDictionary["ko"] = "Korean"
+        translationLanguageDictionary["lt"] = "Lithuanian"
+        translationLanguageDictionary["lv"] = "Latvian"
+        translationLanguageDictionary["mk"] = "Macedonian"
+        translationLanguageDictionary["mr"] = "Marathi"
+        translationLanguageDictionary["ms"] = "Malay"
+        translationLanguageDictionary["mt"] = "Maltese"
+        translationLanguageDictionary["nl"] = "Dutch"
+        translationLanguageDictionary["no"] = "Norwegian"
+        translationLanguageDictionary["pl"] = "Polish"
+        translationLanguageDictionary["pt"] = "Portuguese"
+        translationLanguageDictionary["ro"] = "Romanian"
+        translationLanguageDictionary["ru"] = "Russian"
+        translationLanguageDictionary["sk"] = "Slovak"
+        translationLanguageDictionary["sl"] = "Slovenian"
+        translationLanguageDictionary["sq"] = "Albanian"
+        translationLanguageDictionary["sv"] = "Swedish"
+        translationLanguageDictionary["sw"] = "Swahili"
+        translationLanguageDictionary["ta"] = "Tamil"
+        translationLanguageDictionary["te"] = "Telugu"
+        translationLanguageDictionary["th"] = "Thai"
+        translationLanguageDictionary["tl"] = "Tagalog"
+        translationLanguageDictionary["tr"] = "Turkish"
+        translationLanguageDictionary["uk"] = "Ukrainian"
+        translationLanguageDictionary["ur"] = "Urdu"
+        translationLanguageDictionary["vi"] = "Vietnamese"
+        translationLanguageDictionary["zh"] = "Chinese"
     }
 
     fun getLanguageName(languageCode: String): String {
         return detectionLanguageDictionary[languageCode] ?: "Unknown"
     }
 
-    fun getLanguageCode(languageName: String): String {
-        for ((code, name) in detectionLanguageDictionary) {
+    /**
+     * A function to get the language code from the language name.
+     * @param languageName The name of the language.
+     * @param dictionaryType This utility file handles a detection dictionary and a translation dictionary.
+     * You must provide details on which dictionary to use.
+     *
+     * @return The language code of the language. "Unknown" if the language is not found.
+     * In case something were to go wrong, and no language Name were to be provided, the default language is English.
+     * */
+    fun getLanguageCode(languageName: String?, dictionaryType: Int): String {
+        if (languageName == null) {
+            return "en"
+        }
+
+        val dictionary = when (dictionaryType) {
+            DETECTION_DICTIONARY -> {
+                detectionLanguageDictionary
+            }
+
+            TRANSLATION_DICTIONARY -> {
+                translationLanguageDictionary
+            }
+
+            else -> {
+                Log.e("LanguageUtils", "Invalid dictionary type: $dictionaryType")
+                return "Unknown"
+            }
+        }
+
+        for ((code, name) in dictionary) {
             if (name == languageName) {
                 return code
             }
@@ -133,11 +222,51 @@ object LanguageUtils {
         return "Unknown"
     }
 
-    fun getLanguageList(): List<String> {
-        return detectionLanguageDictionary.values.toList()
+    /**
+     * A function to get the list of languages available in the dictionary based on the scenario.
+     * @param dictionaryType This utility file handles a detection dictionary and a translation dictionary.
+     * Based on the scenario, the list of languages will be returned.
+     *
+     * @return The list of languages available in the dictionary. An empty list if the dictionary type is invalid.
+     * */
+    fun getLanguageList(dictionaryType: Int): List<String> {
+        when (dictionaryType) {
+            DETECTION_DICTIONARY -> {
+                return detectionLanguageDictionary.values.toList().sorted()
+            }
+
+            TRANSLATION_DICTIONARY -> {
+                return translationLanguageDictionary.values.toList().sorted()
+            }
+
+            else -> {
+                Log.e("LanguageUtils", "Invalid dictionary type: $dictionaryType")
+                return emptyList()
+            }
+        }
     }
 
-    fun getLanguageCodeList(): List<String> {
-        return detectionLanguageDictionary.keys.toList()
+    /**
+     * A function to get the list of language codes available in the dictionary based on the scenario.
+     * @param dictionaryType This utility file handles a detection dictionary and a translation dictionary.
+     * Based on the scenario, the list of language codes for the available languages will be returned.
+     *
+     * @return The list of language codes available in the dictionary. An empty list if the dictionary type is invalid.
+     * */
+    fun getLanguageCodeList(dictionaryType: Int): List<String> {
+        when (dictionaryType) {
+            DETECTION_DICTIONARY -> {
+                return detectionLanguageDictionary.keys.toList()
+            }
+
+            TRANSLATION_DICTIONARY -> {
+                return translationLanguageDictionary.keys.toList()
+            }
+
+            else -> {
+                Log.e("LanguageUtils", "Invalid dictionary type: $dictionaryType")
+                return emptyList()
+            }
+        }
     }
 }

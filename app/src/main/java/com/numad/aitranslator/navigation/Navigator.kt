@@ -8,7 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.numad.aitranslator.screens.HomeScreen
+import com.numad.aitranslator.screens.SelectLanguageScreen
 import com.numad.aitranslator.screens.TranslatorScreen
+import com.numad.aitranslator.utils.LanguageUtils
 
 @Composable
 fun Navigator(navController: NavHostController, modifier: Modifier) {
@@ -27,8 +29,27 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
                 defaultValue = TranslateScreenParams.TEXT_TO_TRANSLATION
             })
         ) {
-            val type = it.arguments?.getString(Screen.Translate.TYPE_ARG) ?: TranslateScreenParams.TEXT_TO_TRANSLATION
-            TranslatorScreen(navController, modifier, type)
+            val type = it.arguments?.getString(Screen.Translate.TYPE_ARG)
+                ?: TranslateScreenParams.TEXT_TO_TRANSLATION
+            TranslatorScreen(
+                navController,
+                modifier,
+                type,
+            )
+        }
+        composable(
+            route = Screen.SelectLanguage.route,
+            arguments = listOf(navArgument(Screen.SelectLanguage.DETECTION_TYPE_ARG) {
+                type = NavType.IntType
+                defaultValue = LanguageUtils.DETECTION_DICTIONARY
+            })
+        ) {
+            val detectionType = it.arguments?.getInt(Screen.SelectLanguage.DETECTION_TYPE_ARG) ?: 0
+            SelectLanguageScreen(
+                navController,
+                modifier,
+                detectionType,
+            )
         }
     }
 }
@@ -37,8 +58,13 @@ sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Translate :
         Screen("translate/{type}") {
-            const val TYPE_ARG = "type"
-            fun createRoute(type: String): String = "translate/${type}"
+        const val TYPE_ARG = "type"
+        fun createRoute(type: String): String = "translate/${type}"
+    }
+
+    data object SelectLanguage : Screen("selectLanguage/{detectionType}") {
+        const val DETECTION_TYPE_ARG = "detectionType"
+        fun createRoute(detectionType: Int): String = "selectLanguage/${detectionType}"
     }
 }
 

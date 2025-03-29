@@ -3,10 +3,11 @@ package com.numad.aitranslator.repositories
 import android.util.Log
 import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.languageid.LanguageIdentificationOptions
-import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
+import com.numad.aitranslator.dao.TranslationResults
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,9 +15,9 @@ import javax.inject.Singleton
 class TranslatorRepository @Inject constructor() {
     suspend fun translateText(
         text: String,
-        sourceLanguage: String = TranslateLanguage.ENGLISH,
-        targetLanguage: String = TranslateLanguage.SPANISH
-    ): String {
+        sourceLanguage: String,
+        targetLanguage: String
+    ): TranslationResults {
         val translationOptions = TranslatorOptions.Builder()
             .setSourceLanguage(sourceLanguage)
             .setTargetLanguage(targetLanguage)
@@ -25,11 +26,21 @@ class TranslatorRepository @Inject constructor() {
         val translator = Translation.getClient(translationOptions)
 
         return try {
-            translator.downloadModelIfNeeded().await()
-            translator.translate(text).await()
+            // Set a timeout of 5 seconds for the translation operation.
+            val result = withTimeoutOrNull(5000L) {
+                translator.downloadModelIfNeeded().await()
+                translator.translate(text).await()
+            }
+            if (result == null) {
+                // Result has timed out.
+                Log.e("TranslatorRepository", "Translation timed out")
+                TranslationResults.Error("Translation timed out. Please try again.")
+            } else {
+                TranslationResults.Success(result)
+            }
         } catch (e: Exception) {
             Log.e("TranslatorRepository", "Error translating text", e)
-            "Error: Translation failed"
+            TranslationResults.Error("Translation failed: ${e.message}")
         }
     }
 
@@ -41,7 +52,12 @@ class TranslatorRepository @Inject constructor() {
         val languageIdentifier = LanguageIdentification.getClient(identificationOptions)
 
         return try {
-            languageIdentifier.identifyLanguage(text).await()
+            val detectedLang = languageIdentifier.identifyLanguage(text).await()
+            if (detectedLang == "und") {
+                ""
+            } else {
+                detectedLang
+            }
         } catch (e: Exception) {
             Log.e("TranslatorRepository", "Error identifying language of text", e)
             "Error: Failure in identifying language."
