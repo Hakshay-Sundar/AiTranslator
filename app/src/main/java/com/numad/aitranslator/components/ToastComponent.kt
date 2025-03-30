@@ -38,12 +38,11 @@ import kotlinx.coroutines.delay
 fun ToastComponent(
     toastState: ToastState,
     modifier: Modifier = Modifier,
-    duration: Long = 3000
 ) {
     // Auto-dismiss after specified duration when visible
     LaunchedEffect(key1 = toastState.isVisible) {
         if (toastState.isVisible) {
-            delay(duration)
+            delay(toastState.duration)
             toastState.hide()
             toastState.onDismiss()
         }
@@ -137,12 +136,19 @@ class ToastState {
     var type by mutableStateOf(ToastType.SUCCESS)
     var isVisible by mutableStateOf(false)
     var onDismiss: () -> Unit = { isVisible = false }
+    var duration: Long = 2000
 
-    fun show(message: String, type: ToastType, durationMillis: Long = 3000, onDismiss: () -> Unit = {}) {
+    fun show(
+        message: String,
+        type: ToastType,
+        durationMillis: Long = 2000,
+        onDismiss: () -> Unit = {}
+    ) {
         this.message = message
         this.type = type
         this.isVisible = true
         this.onDismiss = onDismiss
+        this.duration = durationMillis
     }
 
     fun hide() {

@@ -5,14 +5,19 @@ import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.languageid.LanguageIdentificationOptions
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
+import com.numad.aitranslator.dao.GenericResponse
 import com.numad.aitranslator.dao.TranslationResults
+import com.numad.aitranslator.room.daos.TranslationDao
+import com.numad.aitranslator.room.entities.TranslationEntity
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class TranslatorRepository @Inject constructor() {
+class TranslatorRepository @Inject constructor(
+    private val translationDao: TranslationDao
+) {
     suspend fun translateText(
         text: String,
         sourceLanguage: String,
@@ -61,6 +66,70 @@ class TranslatorRepository @Inject constructor() {
         } catch (e: Exception) {
             Log.e("TranslatorRepository", "Error identifying language of text", e)
             "Error: Failure in identifying language."
+        }
+    }
+
+    suspend fun fetchTranslations(): List<TranslationEntity> {
+        try {
+            return translationDao.getAllTranslations()
+        } catch (e: Exception) {
+            Log.e("TranslatorRepository", "Error fetching translations", e)
+            return emptyList()
+        }
+    }
+
+    suspend fun saveTranslation(
+        inputText: String, translatedText: String, languageFrom: String,
+        languageTo: String, timeStamp: Long, existingId: Long? = null
+    ): GenericResponse {
+        return try {
+            if (existingId != null) {
+                translationDao.updateTranslation(
+                    text = inputText,
+                    translatedText = translatedText,
+                    languageFrom = languageFrom,
+                    languageTo = languageTo,
+                    timestampMillis = timeStamp,
+                    id = existingId
+                )
+            } else {
+                translationDao.insertTranslation(
+                    TranslationEntity(
+                        text = inputText,
+                        translatedText = translatedText,
+                        languageFrom = languageFrom,
+                        languageTo = languageTo,
+                        timestampMillis = timeStamp
+                    )
+                )
+            }
+            GenericResponse.Success()
+        } catch (e: Exception) {
+            Log.e("TranslatorRepository", "Error saving translation", e)
+            GenericResponse.Failure(e.message)
+        }
+    }
+
+    suspend fun fetchTranslationById(id: Long): GenericResponse {
+        return try {
+            val translation = translationDao.getTranslationById(id)
+            if (translation != null) {
+                GenericResponse.Success(translation)
+            } else {
+                GenericResponse.Failure("Translation not found")
+            }
+        } catch (e: Exception) {
+            GenericResponse.Failure(e.message)
+        }
+    }
+
+    suspend fun deleteTranslation(id: Long): GenericResponse {
+        return try {
+            translationDao.deleteTranslation(id)
+            GenericResponse.Success()
+        } catch (e: Exception) {
+            Log.e("TranslatorRepository", "Error deleting translation", e)
+            GenericResponse.Failure(e.message)
         }
     }
 }

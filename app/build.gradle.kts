@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.android.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -74,4 +75,9 @@ dependencies {
     // Firebase ML Translation dependencies
     implementation(libs.firebase.ml.translate)
     implementation(libs.firebase.ml.language.id)
+
+    // Google Room
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.room.ktx)
 }

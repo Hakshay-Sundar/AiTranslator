@@ -1,35 +1,71 @@
 package com.numad.aitranslator.screens
 
+import android.content.Context
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.numad.aitranslator.R
 import com.numad.aitranslator.components.Footer
 import com.numad.aitranslator.components.Header
+import com.numad.aitranslator.components.ToastComponent
+import com.numad.aitranslator.components.ToastType
+import com.numad.aitranslator.components.rememberToastState
+import com.numad.aitranslator.dao.GenericResponse
 import com.numad.aitranslator.navigation.Screen
 import com.numad.aitranslator.navigation.TranslateScreenParams
+import com.numad.aitranslator.room.entities.TranslationEntity
+import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.Typography
+import com.numad.aitranslator.ui.theme.White
+import com.numad.aitranslator.viewmodels.HomeScreenViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, modifier: Modifier) {
+fun HomeScreen(
+    navController: NavController,
+    modifier: Modifier,
+    viewmodel: HomeScreenViewModel = hiltViewModel()
+) {
+    val translations by viewmodel.translations.collectAsState()
+    val context = LocalContext.current
+    val toastState = rememberToastState()
+    LaunchedEffect(Unit) {
+        viewmodel.fetchTranslations()
+    }
+
     Column(
         modifier = modifier
     ) {
@@ -37,29 +73,54 @@ fun HomeScreen(navController: NavController, modifier: Modifier) {
         Box(
             modifier = Modifier.weight(1f)
         ) {
-            // As of now, there is no persistent data.
-            // We will only represent the scenario where there are no
-            // translations.
-            NoTranslations(
-                onClick = {
+            this@Column.AnimatedVisibility(translations.isEmpty()) {
+                NoTranslations(onClick = {
                     navController.navigate(
-                        route = Screen.Translate.createRoute(type = TranslateScreenParams.TEXT_TO_TRANSLATION)
+                        route = Screen.Translate.createRoute(
+                            type = TranslateScreenParams.TEXT_TO_TRANSLATION
+                        )
                     )
-                }
-            )
-        }
-        Footer(
-            modifier = modifier,
-            onTabClick = { screenType ->
-                Log.d(
-                    "Home Screen",
-                    "HomeScreen: ${Screen.Translate.createRoute(type = screenType)}"
-                )
-                navController.navigate(
-                    route = Screen.Translate.createRoute(type = screenType)
-                )
+                })
             }
-        )
+            this@Column.AnimatedVisibility(translations.isNotEmpty()) {
+                Translations(context = context, translations = translations, onClick = { id ->
+                    navController.navigate(
+                        route = Screen.Translate.createRoute(
+                            type = TranslateScreenParams.TEXT_TO_TRANSLATION,
+                            existingTranslationId = id
+                        )
+                    )
+                }, onLongClick = { id ->
+                    viewmodel.deleteTranslation(id, onCompletion = { it ->
+                        when (it) {
+                            is GenericResponse.Success -> {
+                                toastState.show(
+                                    context.getString(R.string.translation_deleted),
+                                    ToastType.SUCCESS,
+                                    durationMillis = 2000
+                                )
+                            }
+
+                            is GenericResponse.Failure -> {
+                                toastState.show(
+                                    context.getString(R.string.translation_deleted_error),
+                                    ToastType.SUCCESS
+                                )
+                            }
+                        }
+                    })
+                })
+            }
+            ToastComponent(toastState = toastState)
+        }
+        Footer(modifier = modifier, onTabClick = { screenType ->
+            Log.d(
+                "Home Screen", "HomeScreen: ${Screen.Translate.createRoute(type = screenType)}"
+            )
+            navController.navigate(
+                route = Screen.Translate.createRoute(type = screenType)
+            )
+        })
     }
 }
 
@@ -85,6 +146,69 @@ fun NoTranslations(
                 .padding(start = 4.dp),
             style = Typography.bodyMedium
         )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun Translations(
+    context: Context,
+    modifier: Modifier = Modifier,
+    translations: List<TranslationEntity>,
+    onClick: (Long) -> Unit,
+    onLongClick: (Long) -> Unit = {}
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2), // Sets exactly 2 columns
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(translations.size) { item ->
+            Box(
+                modifier = modifier
+                    .size(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(color = White)
+                    .border(width = 1.dp, color = Black, shape = RoundedCornerShape(12.dp))
+                    .combinedClickable(onClick = {
+                        onClick(translations[item].id)
+                    }, onLongClick = {
+                        onLongClick(translations[item].id)
+                    })
+            ) {
+                Text(
+                    text = context.getString(
+                        R.string.translation_representation,
+                        (translations[item].text.substring(
+                            0,
+                            clampValue(25, 0, translations[item].text.length)
+                        ) + "..."),
+                        if (translations[item].translatedText.isNotEmpty()) {
+                            translations[item].translatedText.substring(
+                                0,
+                                clampValue(25, 0, translations[item].translatedText.length)
+                            ) + "..."
+                        } else {
+                            context.getString(R.string.unavailable)
+                        }
+                    ),
+                    modifier = modifier
+                        .padding(12.dp)
+                        .align(Alignment.Center),
+                    textAlign = TextAlign.Center,
+                    style = Typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+private fun clampValue(value: Int, minValue: Int, maxValue: Int): Int {
+    return when {
+        value < minValue -> minValue
+        value > maxValue -> maxValue
+        else -> value
     }
 }
 

@@ -8,6 +8,9 @@
       <SelectionState runConfigName="TranslatorScreenPreview - Translator Screen Preview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="ToastComponentPreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

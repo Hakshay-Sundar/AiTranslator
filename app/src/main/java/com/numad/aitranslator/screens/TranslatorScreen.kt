@@ -34,6 +34,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +48,7 @@ import com.numad.aitranslator.components.LanguageHolder
 import com.numad.aitranslator.components.ToastComponent
 import com.numad.aitranslator.components.ToastType
 import com.numad.aitranslator.components.rememberToastState
+import com.numad.aitranslator.dao.GenericResponse
 import com.numad.aitranslator.navigation.Screen
 import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.ui.theme.Black
@@ -60,26 +62,76 @@ import com.numad.aitranslator.viewmodels.TranslatorViewModel
 fun TranslatorScreen(
     navController: NavController,
     modifier: Modifier,
-    type: String = TranslateScreenParams.TEXT_TO_TRANSLATION
+    type: String = TranslateScreenParams.TEXT_TO_TRANSLATION,
+    existingTranslationId: Long? = null
 ) {
+    val context = LocalContext.current
     val viewModel: TranslatorViewModel =
-        (LocalContext.current as ComponentActivity).viewModels<TranslatorViewModel>().value
+        (context as ComponentActivity).viewModels<TranslatorViewModel>().value
     var inputText by rememberSaveable { mutableStateOf("") }
     val allowDetection: MutableState<Boolean> = remember { mutableStateOf(true) }
+    val allowTranslation: MutableState<Boolean> = remember { mutableStateOf(true) }
     val toastState = rememberToastState()
     val translatedText by viewModel.translatedText.collectAsState()
     val languageFrom by viewModel.languageFrom.collectAsState()
     val languageTo by viewModel.languageTo.collectAsState()
     val triggerError by viewModel.triggerErrorAlert.collectAsState()
+    var shouldPullExistingTranslation by rememberSaveable { mutableStateOf(true) }
+    var isInitialRender by rememberSaveable { mutableStateOf(true) }
 
     BackHandler {
-        viewModel.reset()
-        navController.popBackStack()
+        inputText = ""
+        shouldPullExistingTranslation = false
+        allowDetection.value = false
+        allowTranslation.value = false
+        isInitialRender = true
+        onBack(
+            navController = navController,
+            viewModel = viewModel
+        )
     }
 
-    LaunchedEffect(languageTo, languageFrom, inputText) {
-        if (languageFrom != null && languageTo != null && inputText.isNotEmpty()) {
-            viewModel.translateText(inputText)
+    LaunchedEffect(existingTranslationId, languageTo, languageFrom, inputText) {
+        if (existingTranslationId != null && shouldPullExistingTranslation) {
+            viewModel.fetchExistingTranslationObject(existingTranslationId) {
+                inputText = it
+                shouldPullExistingTranslation = false
+                isInitialRender = false
+            }
+        } else if (languageFrom != null && languageTo != null && inputText.isNotEmpty() &&
+            allowTranslation.value && translatedText.isEmpty()
+        ) {
+            viewModel.translateText(inputText) {
+                if (!isInitialRender) {
+                    viewModel.saveTranslation(
+                        inputText,
+                        existingTranslationId,
+                        onCompletion = { response ->
+                            when (response) {
+                                is GenericResponse.Success -> {
+                                    toastState.show(
+                                        message = context.getString(R.string.translation_saved),
+                                        type = ToastType.SUCCESS,
+                                        durationMillis = 3000,
+                                        onDismiss = {}
+                                    )
+                                }
+
+                                is GenericResponse.Failure -> {
+                                    toastState.show(
+                                        message = context.getString(R.string.something_went_wrong),
+                                        type = ToastType.ERROR,
+                                        durationMillis = 3000,
+                                        onDismiss = { }
+                                    )
+                                }
+                            }
+                        }
+                    )
+                } else {
+                    isInitialRender = false
+                }
+            }
         } else if (languageFrom == null) {
             if (inputText.isNotEmpty() && inputText.length >= 5) {
                 viewModel.detectLanguage(inputText)
@@ -87,12 +139,13 @@ fun TranslatorScreen(
             } else {
                 allowDetection.value = true
             }
+            isInitialRender = false
         }
     }
 
     if (triggerError) {
         toastState.show(
-            message = LocalContext.current.getString(R.string.something_went_wrong),
+            message = context.getString(R.string.something_went_wrong),
             type = ToastType.ERROR,
             durationMillis = 3000,
             onDismiss = {
@@ -122,8 +175,15 @@ fun TranslatorScreen(
                         imageId = R.drawable.back_arrow,
                         descriptionId = R.string.back_button_description
                     ) {
-                        viewModel.reset()
-                        navController.popBackStack()
+                        inputText = ""
+                        shouldPullExistingTranslation = false
+                        allowDetection.value = false
+                        allowTranslation.value = false
+                        isInitialRender = true
+                        onBack(
+                            navController = navController,
+                            viewModel = viewModel
+                        )
                     }
                 }
                 Box(
@@ -191,7 +251,33 @@ fun TranslatorScreen(
                                     allowDetection.value = false
                                 }
                                 if (languageFrom != null && languageTo != null) {
-                                    viewModel.translateText(it)
+                                    viewModel.translateText(it, onCompletion = {
+                                        viewModel.saveTranslation(
+                                            inputText = inputText,
+                                            existingId = existingTranslationId,
+                                            onCompletion = { response ->
+                                                when (response) {
+                                                    is GenericResponse.Success -> {
+                                                        toastState.show(
+                                                            message = context.getString(R.string.translation_saved),
+                                                            type = ToastType.SUCCESS,
+                                                            durationMillis = 3000,
+                                                            onDismiss = {}
+                                                        )
+                                                    }
+
+                                                    is GenericResponse.Failure -> {
+                                                        toastState.show(
+                                                            message = context.getString(R.string.something_went_wrong),
+                                                            type = ToastType.ERROR,
+                                                            durationMillis = 3000,
+                                                            onDismiss = { }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    })
                                 }
                             },
                             modifier = Modifier
@@ -254,10 +340,125 @@ fun TranslatorScreen(
                         descriptionId = R.string.mic_description,
                     ) { }
                 }
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 16.dp, end = 16.dp)
+                ) {
+                    ClickableImage(
+                        modifier = Modifier
+                            .shadow(elevation = 12.dp, shape = CircleShape)
+                            .background(color = White, shape = CircleShape)
+                            .border(width = 2.dp, color = Black, shape = CircleShape),
+                        imageId = R.drawable.save,
+                        descriptionId = R.string.save_description,
+                    ) {
+                        if (inputText.isNotEmpty() && languageFrom != null) {
+                            viewModel.saveTranslation(
+                                inputText,
+                                existingTranslationId
+                            ) { response ->
+                                when (response) {
+                                    is GenericResponse.Success -> {
+                                        toastState.show(
+                                            message = context.getString(R.string.translation_saved),
+                                            type = ToastType.SUCCESS,
+                                            durationMillis = 3000,
+                                            onDismiss = {
+                                                inputText = ""
+                                                shouldPullExistingTranslation = false
+                                                allowDetection.value = false
+                                                allowTranslation.value = false
+                                                isInitialRender = true
+                                                onBack(
+                                                    navController = navController,
+                                                    viewModel = viewModel
+                                                )
+                                            }
+                                        )
+                                    }
+
+                                    is GenericResponse.Failure -> {
+                                        toastState.show(
+                                            message = context.getString(R.string.something_went_wrong),
+                                            type = ToastType.ERROR,
+                                            durationMillis = 3000,
+                                            onDismiss = { }
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            toastState.show(
+                                message = context.getString(R.string.fill_up_data_to_save),
+                                type = ToastType.WARNING,
+                                durationMillis = 3000,
+                                onDismiss = { }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ClickableImage(
+                        modifier = Modifier
+                            .shadow(elevation = 12.dp, shape = CircleShape)
+                            .background(color = White, shape = CircleShape)
+                            .border(width = 2.dp, color = Black, shape = CircleShape),
+                        imageId = R.drawable.translate,
+                        descriptionId = R.string.translate_description,
+                    ) {
+                        if (inputText.isNotEmpty() && languageFrom != null && languageTo != null) {
+                            viewModel.translateText(
+                                inputText,
+                                onCompletion = {
+                                    viewModel.saveTranslation(
+                                        inputText,
+                                        existingTranslationId,
+                                        onCompletion = { response ->
+                                            when (response) {
+                                                is GenericResponse.Success -> {
+                                                    toastState.show(
+                                                        message = context.getString(R.string.translation_saved),
+                                                        type = ToastType.SUCCESS,
+                                                        durationMillis = 3000,
+                                                        onDismiss = {}
+                                                    )
+                                                }
+
+                                                is GenericResponse.Failure -> {
+                                                    toastState.show(
+                                                        message = context.getString(R.string.something_went_wrong),
+                                                        type = ToastType.ERROR,
+                                                        durationMillis = 3000,
+                                                        onDismiss = { }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            )
+                        } else {
+                            toastState.show(
+                                message = context.getString(R.string.fill_up_data_to_translate),
+                                type = ToastType.WARNING,
+                                durationMillis = 3000,
+                                onDismiss = { }
+                            )
+                        }
+                    }
+                }
             }
         }
         ToastComponent(toastState)
     }
+}
+
+fun onBack(
+    navController: NavController,
+    viewModel: TranslatorViewModel
+) {
+    viewModel.reset()
+    navController.popBackStack()
 }
 
 @Preview(name = "Translator Screen Preview", showBackground = true, showSystemUi = true)

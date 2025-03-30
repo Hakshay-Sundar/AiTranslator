@@ -24,17 +24,28 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
         }
         composable(
             route = Screen.Translate.route,
-            arguments = listOf(navArgument(Screen.Translate.TYPE_ARG) {
-                type = NavType.StringType
-                defaultValue = TranslateScreenParams.TEXT_TO_TRANSLATION
-            })
+            arguments = listOf(
+                navArgument(Screen.Translate.TYPE_ARG) {
+                    type = NavType.StringType
+                    defaultValue = TranslateScreenParams.TEXT_TO_TRANSLATION
+                },
+                navArgument(Screen.Translate.EXISTING_TRANSLATION_ID_ARG) {
+                    type = NavType.LongType
+                    defaultValue = -1
+                }
+            )
         ) {
             val type = it.arguments?.getString(Screen.Translate.TYPE_ARG)
                 ?: TranslateScreenParams.TEXT_TO_TRANSLATION
+
+            val existingTranslationId =
+                it.arguments?.getLong(Screen.Translate.EXISTING_TRANSLATION_ID_ARG)
+
             TranslatorScreen(
                 navController,
                 modifier,
                 type,
+                if (existingTranslationId == -1L) null else existingTranslationId
             )
         }
         composable(
@@ -57,9 +68,11 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Translate :
-        Screen("translate/{type}") {
+        Screen("translate/{type}&{existingTranslationId}") {
         const val TYPE_ARG = "type"
-        fun createRoute(type: String): String = "translate/${type}"
+        const val EXISTING_TRANSLATION_ID_ARG = "existingTranslationId"
+        fun createRoute(type: String, existingTranslationId: Long = -1L): String =
+            "translate/${type}&${existingTranslationId}"
     }
 
     data object SelectLanguage : Screen("selectLanguage/{detectionType}") {
