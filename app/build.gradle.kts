@@ -75,6 +75,7 @@ dependencies {
     // Firebase ML Translation dependencies
     implementation(libs.firebase.ml.translate)
     implementation(libs.firebase.ml.language.id)
+    implementation(libs.firebase.ml.text.recognition)
 
     // Google Room
     implementation(libs.room.runtime)

@@ -250,35 +250,6 @@ fun TranslatorScreen(
                                     viewModel.detectLanguage(it)
                                     allowDetection.value = false
                                 }
-                                if (languageFrom != null && languageTo != null) {
-                                    viewModel.translateText(it, onCompletion = {
-                                        viewModel.saveTranslation(
-                                            inputText = inputText,
-                                            existingId = existingTranslationId,
-                                            onCompletion = { response ->
-                                                when (response) {
-                                                    is GenericResponse.Success -> {
-                                                        toastState.show(
-                                                            message = context.getString(R.string.translation_saved),
-                                                            type = ToastType.SUCCESS,
-                                                            durationMillis = 3000,
-                                                            onDismiss = {}
-                                                        )
-                                                    }
-
-                                                    is GenericResponse.Failure -> {
-                                                        toastState.show(
-                                                            message = context.getString(R.string.something_went_wrong),
-                                                            type = ToastType.ERROR,
-                                                            durationMillis = 3000,
-                                                            onDismiss = { }
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        )
-                                    })
-                                }
                             },
                             modifier = Modifier
                                 .weight(1f)

@@ -11,6 +11,7 @@ composeBom = "2025.01.01"
 navVersion = "2.8.6"
 mlkit = "17.0.3"
 mlkitLanguage = "17.0.6"
+mlkitTextRecognition = "16.0.0"
 hilt = "2.48.1"
 
 [libraries]
@@ -44,6 +45,7 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 # Firebase ML Translation dependencies
 firebase-ml-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkit" }
 firebase-ml-language-id = { group = "com.google.mlkit", name = "language-id", version.ref = "mlkitLanguage" }
+firebase-ml-text-recognition = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition", version.ref = "mlkitTextRecognition" }
 
 # Google Room
 room-runtime = { group = "androidx.room", name = "room-runtime", version = "2.6.1" }

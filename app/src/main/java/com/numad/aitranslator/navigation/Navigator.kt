@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.numad.aitranslator.screens.HomeScreen
 import com.numad.aitranslator.screens.SelectLanguageScreen
+import com.numad.aitranslator.screens.TextSelectionScreen
 import com.numad.aitranslator.screens.TranslatorScreen
 import com.numad.aitranslator.utils.LanguageUtils
 
@@ -62,6 +63,20 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
                 detectionType,
             )
         }
+        composable(
+            route = Screen.TextSelection.route,
+            arguments = listOf(navArgument(Screen.TextSelection.IMAGE_SOURCE_ID_ARG) {
+                type = NavType.IntType
+                defaultValue = -1
+            })
+        ) {
+            val imageSourceId = it.arguments?.getInt(Screen.TextSelection.IMAGE_SOURCE_ID_ARG) ?: -1
+            TextSelectionScreen(
+                modifier,
+                navController,
+                imageSourceId
+            )
+        }
     }
 }
 
@@ -78,6 +93,11 @@ sealed class Screen(val route: String) {
     data object SelectLanguage : Screen("selectLanguage/{detectionType}") {
         const val DETECTION_TYPE_ARG = "detectionType"
         fun createRoute(detectionType: Int): String = "selectLanguage/${detectionType}"
+    }
+
+    data object TextSelection : Screen("textSelection/{imageSourceId}") {
+        const val IMAGE_SOURCE_ID_ARG = "imageSourceId"
+        fun createRoute(imageSourceId: Int): String = "textSelection/${imageSourceId}"
     }
 }
 

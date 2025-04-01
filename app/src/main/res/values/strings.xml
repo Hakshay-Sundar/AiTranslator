@@ -17,5 +17,8 @@
     <string name="unavailable">Unavailable</string>
     <string name="translation_deleted">Translation deleted successfully!</string>
     <string name="translation_deleted_error">Translation could not be deleted.</string>
-
+    <string name="choose_image">Choose Image source</string>
+    <string name="camera_desc">Camera</string>
+    <string name="gallery_desc">Gallery</string>
+    <string name="camera_permission_denied">Camera permission denied.</string>
 </resources>
