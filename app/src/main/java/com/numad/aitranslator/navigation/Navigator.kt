@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.numad.aitranslator.screens.HomeScreen
 import com.numad.aitranslator.screens.SelectLanguageScreen
+import com.numad.aitranslator.screens.TextSelectionScreen
 import com.numad.aitranslator.screens.TranslatorScreen
 import com.numad.aitranslator.utils.LanguageUtils
 
@@ -25,7 +26,7 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
         composable(
             route = Screen.Translate.route,
             arguments = listOf(
-                navArgument(Screen.Translate.TYPE_ARG) {
+                navArgument(Screen.Translate.SELECTED_TEXT_ARG) {
                     type = NavType.StringType
                     defaultValue = TranslateScreenParams.TEXT_TO_TRANSLATION
                 },
@@ -35,8 +36,8 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
                 }
             )
         ) {
-            val type = it.arguments?.getString(Screen.Translate.TYPE_ARG)
-                ?: TranslateScreenParams.TEXT_TO_TRANSLATION
+            val selectedText = it.arguments?.getString(Screen.Translate.SELECTED_TEXT_ARG)
+                ?: ""
 
             val existingTranslationId =
                 it.arguments?.getLong(Screen.Translate.EXISTING_TRANSLATION_ID_ARG)
@@ -44,7 +45,7 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
             TranslatorScreen(
                 navController,
                 modifier,
-                type,
+                selectedText,
                 if (existingTranslationId == -1L) null else existingTranslationId
             )
         }
@@ -62,22 +63,41 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
                 detectionType,
             )
         }
+        composable(
+            route = Screen.TextSelection.route,
+            arguments = listOf(navArgument(Screen.TextSelection.IMAGE_SOURCE_ID_ARG) {
+                type = NavType.IntType
+                defaultValue = -1
+            })
+        ) {
+            val imageSourceId = it.arguments?.getInt(Screen.TextSelection.IMAGE_SOURCE_ID_ARG) ?: -1
+            TextSelectionScreen(
+                modifier,
+                navController,
+                imageSourceId
+            )
+        }
     }
 }
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Translate :
-        Screen("translate/{type}&{existingTranslationId}") {
-        const val TYPE_ARG = "type"
+        Screen("translate/{selectedText}&{existingTranslationId}") {
+        const val SELECTED_TEXT_ARG = "selectedText"
         const val EXISTING_TRANSLATION_ID_ARG = "existingTranslationId"
-        fun createRoute(type: String, existingTranslationId: Long = -1L): String =
-            "translate/${type}&${existingTranslationId}"
+        fun createRoute(selectedText: String = "", existingTranslationId: Long = -1L): String =
+            "translate/${selectedText}&${existingTranslationId}"
     }
 
     data object SelectLanguage : Screen("selectLanguage/{detectionType}") {
         const val DETECTION_TYPE_ARG = "detectionType"
         fun createRoute(detectionType: Int): String = "selectLanguage/${detectionType}"
+    }
+
+    data object TextSelection : Screen("textSelection/{imageSourceId}") {
+        const val IMAGE_SOURCE_ID_ARG = "imageSourceId"
+        fun createRoute(imageSourceId: Int): String = "textSelection/${imageSourceId}"
     }
 }
 
