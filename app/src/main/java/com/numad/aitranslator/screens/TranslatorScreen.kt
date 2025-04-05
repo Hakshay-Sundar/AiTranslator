@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.TextField
@@ -50,7 +51,6 @@ import com.numad.aitranslator.components.ToastType
 import com.numad.aitranslator.components.rememberToastState
 import com.numad.aitranslator.dao.GenericResponse
 import com.numad.aitranslator.navigation.Screen
-import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
@@ -62,7 +62,7 @@ import com.numad.aitranslator.viewmodels.TranslatorViewModel
 fun TranslatorScreen(
     navController: NavController,
     modifier: Modifier,
-    type: String = TranslateScreenParams.TEXT_TO_TRANSLATION,
+    selectedText: String = "",
     existingTranslationId: Long? = null
 ) {
     val context = LocalContext.current
@@ -89,6 +89,16 @@ fun TranslatorScreen(
             navController = navController,
             viewModel = viewModel
         )
+    }
+
+    LaunchedEffect(Unit) {
+        if (selectedText.isNotEmpty()) {
+            inputText = selectedText
+            shouldPullExistingTranslation = false
+            allowDetection.value = true
+            allowTranslation.value = true
+            isInitialRender = false
+        }
     }
 
     LaunchedEffect(existingTranslationId, languageTo, languageFrom, inputText) {
@@ -225,14 +235,8 @@ fun TranslatorScreen(
                         )
                     }
                     Spacer(
-                        modifier = Modifier.height(
-                            if (
-                                TranslateScreenParams.AUDIO_TO_TRANSLATION.equals(
-                                    type, ignoreCase = true
-                                )
-                            ) 12.dp
-                            else 24.dp
-                        )
+                        modifier = Modifier
+                            .height(24.dp)
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -297,28 +301,14 @@ fun TranslatorScreen(
                         )
                     }
                 }
-                if (
-                    TranslateScreenParams.AUDIO_TO_TRANSLATION.equals(
-                        type, ignoreCase = true
-                    )
-                ) {
-                    ClickableImage(
-                        modifier = Modifier
-                            .background(color = White, shape = CircleShape)
-                            .border(width = 2.dp, color = Black, shape = CircleShape)
-                            .align(Alignment.BottomCenter),
-                        imageId = R.drawable.mic,
-                        descriptionId = R.string.mic_description,
-                    ) { }
-                }
-                Column(
+                Row(
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 16.dp, end = 16.dp)
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
                 ) {
                     ClickableImage(
                         modifier = Modifier
-                            .shadow(elevation = 12.dp, shape = CircleShape)
+                            .shadow(elevation = 16.dp, shape = CircleShape)
                             .background(color = White, shape = CircleShape)
                             .border(width = 2.dp, color = Black, shape = CircleShape),
                         imageId = R.drawable.save,
@@ -368,10 +358,10 @@ fun TranslatorScreen(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     ClickableImage(
                         modifier = Modifier
-                            .shadow(elevation = 12.dp, shape = CircleShape)
+                            .shadow(elevation = 16.dp, shape = CircleShape)
                             .background(color = White, shape = CircleShape)
                             .border(width = 2.dp, color = Black, shape = CircleShape),
                         imageId = R.drawable.translate,
@@ -440,6 +430,5 @@ private fun TranslatorScreenPreview() {
         modifier = Modifier
             .statusBarsPadding()
             .safeDrawingPadding(),
-        type = TranslateScreenParams.AUDIO_TO_TRANSLATION,
     )
 }

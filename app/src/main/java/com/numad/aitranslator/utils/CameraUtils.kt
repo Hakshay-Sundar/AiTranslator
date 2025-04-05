@@ -19,7 +19,7 @@ const val GALLERY_ID = 102
 
 @Composable
 fun CameraHandler(
-    onImageCaptured: (Bitmap) -> Unit,
+    onImageCaptured: (Bitmap?) -> Unit,
     onPermissionDenied: () -> Unit
 ) {
     val context = LocalContext.current
@@ -68,6 +68,8 @@ fun CameraHandler(
                 // Delete the temp file
                 tempImageFile.delete()
             }
+        } else {
+            onImageCaptured(null)
         }
     }
 

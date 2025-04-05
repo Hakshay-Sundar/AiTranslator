@@ -114,9 +114,7 @@ fun HomeScreen(
                 this@Column.AnimatedVisibility(translations.isEmpty()) {
                     NoTranslations(onClick = {
                         navController.navigate(
-                            route = Screen.Translate.createRoute(
-                                type = TranslateScreenParams.TEXT_TO_TRANSLATION
-                            )
+                            route = Screen.Translate.createRoute()
                         )
                     })
                 }
@@ -124,7 +122,6 @@ fun HomeScreen(
                     Translations(context = context, translations = translations, onClick = { id ->
                         navController.navigate(
                             route = Screen.Translate.createRoute(
-                                type = TranslateScreenParams.TEXT_TO_TRANSLATION,
                                 existingTranslationId = id
                             )
                         )
@@ -162,7 +159,7 @@ fun HomeScreen(
                     }
                 } else {
                     navController.navigate(
-                        route = Screen.Translate.createRoute(type = screenType)
+                        route = Screen.Translate.createRoute()
                     )
                 }
             })

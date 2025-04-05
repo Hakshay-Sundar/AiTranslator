@@ -26,7 +26,7 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
         composable(
             route = Screen.Translate.route,
             arguments = listOf(
-                navArgument(Screen.Translate.TYPE_ARG) {
+                navArgument(Screen.Translate.SELECTED_TEXT_ARG) {
                     type = NavType.StringType
                     defaultValue = TranslateScreenParams.TEXT_TO_TRANSLATION
                 },
@@ -36,8 +36,8 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
                 }
             )
         ) {
-            val type = it.arguments?.getString(Screen.Translate.TYPE_ARG)
-                ?: TranslateScreenParams.TEXT_TO_TRANSLATION
+            val selectedText = it.arguments?.getString(Screen.Translate.SELECTED_TEXT_ARG)
+                ?: ""
 
             val existingTranslationId =
                 it.arguments?.getLong(Screen.Translate.EXISTING_TRANSLATION_ID_ARG)
@@ -45,7 +45,7 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
             TranslatorScreen(
                 navController,
                 modifier,
-                type,
+                selectedText,
                 if (existingTranslationId == -1L) null else existingTranslationId
             )
         }
@@ -83,11 +83,11 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Translate :
-        Screen("translate/{type}&{existingTranslationId}") {
-        const val TYPE_ARG = "type"
+        Screen("translate/{selectedText}&{existingTranslationId}") {
+        const val SELECTED_TEXT_ARG = "selectedText"
         const val EXISTING_TRANSLATION_ID_ARG = "existingTranslationId"
-        fun createRoute(type: String, existingTranslationId: Long = -1L): String =
-            "translate/${type}&${existingTranslationId}"
+        fun createRoute(selectedText: String = "", existingTranslationId: Long = -1L): String =
+            "translate/${selectedText}&${existingTranslationId}"
     }
 
     data object SelectLanguage : Screen("selectLanguage/{detectionType}") {

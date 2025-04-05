@@ -8,15 +8,19 @@ import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.numad.aitranslator.dao.GenericResponse
 import com.numad.aitranslator.dao.TextSelectionResponse
 import com.numad.aitranslator.dao.TranslationResults
 import com.numad.aitranslator.room.daos.TranslationDao
 import com.numad.aitranslator.room.entities.TranslationEntity
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.stream.Collectors
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 
 @Singleton
 class TranslatorRepository @Inject constructor(
@@ -138,29 +142,47 @@ class TranslatorRepository @Inject constructor(
     }
 
     suspend fun fetchTextFromImage(image: Bitmap): TextSelectionResponse {
-        return try {
-            val textRecognizer = TextRecognition.getClient()
-            val input = InputImage.fromBitmap(image, 0)
-            var result = TextSelectionResponse()
-            textRecognizer.process(input)
-                .addOnSuccessListener { texts ->
-                    val textBlocks = texts.textBlocks
-                    if (textBlocks.size > 0) {
-                        val listOfLines = arrayListOf<String>()
-                        textBlocks.stream().map { block ->
-                            listOfLines.add(block.text)
+        val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        val input = InputImage.fromBitmap(image, 0)
+        return suspendCancellableCoroutine { continuation ->
+            try {
+                textRecognizer.process(input)
+                    .addOnSuccessListener { texts ->
+                        val textBlocks = texts.textBlocks
+                        if (textBlocks.size > 0) {
+                            val listOfLines = arrayListOf<String>()
+                            textBlocks.stream().map { block ->
+                                listOfLines.add(block.text)
+                            }.collect(Collectors.toList())
+                            continuation.resume(
+                                TextSelectionResponse(true, listOfLines, null)
+                            )
+                        } else {
+                            continuation.resume(
+                                TextSelectionResponse(
+                                    false,
+                                    emptyList(),
+                                    "No text found in the image"
+                                )
+                            )
                         }
-                        result = result.setSuccess(true).setTexts(listOfLines)
-                    } else {
-                        result = result.setSuccess(false).setError("No text found in the image")
+                    }.addOnFailureListener { error ->
+                        Log.e("TranslatorRepository", "Error fetching text from image", error)
+                        continuation.resume(
+                            TextSelectionResponse(false, emptyList(), error.message)
+                        )
                     }
-                }.addOnFailureListener { error ->
-                    Log.e("TranslatorRepository", "Error fetching text from image", error)
-                    result = result.setSuccess(false).setError(error.message)
+                continuation.invokeOnCancellation {
+                    textRecognizer.close()
+                    continuation.resume(
+                        TextSelectionResponse(false, emptyList(), "Operation cancelled")
+                    )
                 }
-            result
-        } catch (e: Exception) {
-            TextSelectionResponse(false, emptyList(), e.message)
+            } catch (e: Exception) {
+                continuation.resume(
+                    TextSelectionResponse(false, emptyList(), e.message)
+                )
+            }
         }
     }
 }

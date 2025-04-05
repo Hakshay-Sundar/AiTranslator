@@ -3,23 +3,23 @@ package com.numad.aitranslator.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.R
+import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.ui.theme.Black
-import com.numad.aitranslator.ui.theme.Pink40
-import com.numad.aitranslator.ui.theme.Pink80
 import com.numad.aitranslator.ui.theme.White
 
 @Composable
@@ -27,42 +27,44 @@ fun Footer(
     modifier: Modifier,
     onTabClick: (String) -> Unit = {}
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 64.dp,
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
-                ambientColor = Pink40,
-                spotColor = Pink80
-            )
-            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-            .background(color = White)
-            .border(
-                width = 1.dp,
-                color = Black,
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-            )
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceAround
+    Surface(
+        modifier = Modifier,
+        shape = RoundedCornerShape(
+            topStart = 9.dp, topEnd = 9.dp
+        ),
+        shadowElevation = 3.dp,
+        color = Color.Black.copy(alpha = 0.2f)
     ) {
-        ClickableImage(
-            imageId = R.drawable.mic,
-            descriptionId = R.string.mic_description
+        Box(
+            modifier = Modifier
+                .padding(top = 8.dp)
         ) {
-            onTabClick(TranslateScreenParams.AUDIO_TO_TRANSLATION)
-        }
-        ClickableImage(
-            imageId = R.drawable.text_edit,
-            descriptionId = R.string.text_edit_description
-        ) {
-            onTabClick(TranslateScreenParams.TEXT_TO_TRANSLATION)
-        }
-        ClickableImage(
-            imageId = R.drawable.photo,
-            descriptionId = R.string.image_edit_description
-        ) {
-            onTabClick(TranslateScreenParams.IMAGE_TO_TRANSLATION)
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                    .background(color = White)
+                    .border(
+                        width = 1.dp,
+                        color = Black,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .padding(vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                ClickableImage(
+                    imageId = R.drawable.text_edit,
+                    descriptionId = R.string.text_edit_description
+                ) {
+                    onTabClick(TranslateScreenParams.TEXT_TO_TRANSLATION)
+                }
+                ClickableImage(
+                    imageId = R.drawable.photo,
+                    descriptionId = R.string.image_edit_description
+                ) {
+                    onTabClick(TranslateScreenParams.IMAGE_TO_TRANSLATION)
+                }
+            }
         }
     }
 }

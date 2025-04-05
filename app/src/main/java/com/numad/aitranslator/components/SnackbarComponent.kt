@@ -3,18 +3,23 @@ package com.numad.aitranslator.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,8 +27,8 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.numad.aitranslator.R
 import com.numad.aitranslator.ui.theme.Black
+import com.numad.aitranslator.ui.theme.Pink40
 import com.numad.aitranslator.ui.theme.White
 
 @Composable
@@ -36,9 +41,35 @@ fun SnackbarComponent(
         hostState = hostState,
         modifier = modifier,
         snackbar = {
-            SnackbarView(
-                buttons = buttons
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        hostState.currentSnackbarData?.dismiss()
+                    },
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Surface(
+                    modifier = Modifier,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp, topEnd = 12.dp
+                    ),
+                    shadowElevation = 6.dp,
+                    color = Pink40.copy(alpha = 0.2f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 12.dp, start = 2.dp, end = 2.dp)
+                    ) {
+                        SnackbarView(
+                            buttons = buttons
+                        )
+                    }
+                }
+            }
         }
     )
 }
@@ -113,22 +144,26 @@ data class SnackbarButton(
 @Composable
 private fun SnackbarViewPreview() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        SnackbarView(
-            buttons = listOf(
-                SnackbarButton(
-                    imageId = R.drawable.camera,
-                    description = "camera",
-                    onClick = {}
-                ),
-                SnackbarButton(
-                    imageId = R.drawable.gallery,
-                    description = "gallery",
-                    onClick = {}
+        Surface(
+            modifier = Modifier,
+            shape = RoundedCornerShape(
+                topStart = 12.dp, topEnd = 12.dp
+            ),
+            shadowElevation = 6.dp,
+            color = Pink40.copy(alpha = 0.2f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 8.dp, start = 4.dp, end = 4.dp)
+            ) {
+                SnackbarView(
+                    buttons = emptyList()
                 )
-            )
-        )
+            }
+        }
     }
 }

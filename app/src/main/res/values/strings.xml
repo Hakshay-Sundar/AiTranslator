@@ -21,4 +21,8 @@
     <string name="camera_desc">Camera</string>
     <string name="gallery_desc">Gallery</string>
     <string name="camera_permission_denied">Camera permission denied.</string>
+    <string name="gallery_permission_denied">Permission to access gallery denied.</string>
+    <string name="no_text_in_image">No text found in the image.</string>
+    <string name="select_text">Select text to translate</string>
+    <string name="confirm">Confirm</string>
 </resources>
