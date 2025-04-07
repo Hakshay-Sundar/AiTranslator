@@ -23,6 +23,7 @@ val PastelYellow = Color(0xFFF8EAC0)
 val PastelPurple = Color(0xFFD9CAEE)
 val PastelOrange = Color(0xFFFFD8C2)
 val PastelTeal = Color(0xFFB8E6D9)
+val PastelRed = Color(0xFFF5C6CB)
 
 val pastelColors = listOf(
     PastelBlue,
@@ -31,7 +32,8 @@ val pastelColors = listOf(
     PastelYellow,
     PastelPurple,
     PastelOrange,
-    PastelTeal
+    PastelTeal,
+    PastelRed
 )
 
 fun getRandomPastelColor(): Color {

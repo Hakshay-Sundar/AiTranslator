@@ -21,7 +21,9 @@ import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
 
 @Composable
-fun Header() {
+fun Header(
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

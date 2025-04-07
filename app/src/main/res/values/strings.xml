@@ -15,6 +15,8 @@
     <string name="translation_representation">Input: %1$s\nTranslation: %2$s</string>
     <string name="translation_saved">Translation saved successfully!</string>
     <string name="unavailable">Unavailable</string>
+    <string name="delete">Delete</string>
+    <string name="share">Share</string>
     <string name="translation_deleted">Translation deleted successfully!</string>
     <string name="translation_deleted_error">Translation could not be deleted.</string>
     <string name="choose_image">Choose Image source</string>
@@ -30,4 +32,7 @@
     <string name="no_text_selected">Please select some text to translate.</string>
     <string name="search_description">Search</string>
     <string name="clear_search_description">Clear Search</string>
+    <string name="translation_options">What would you like to do with this translation?</string>
+    <string name="input">Input</string>
+    <string name="translation">Translation</string>
 </resources>

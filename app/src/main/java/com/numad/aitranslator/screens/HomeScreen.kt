@@ -1,6 +1,7 @@
 package com.numad.aitranslator.screens
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,17 +24,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,6 +53,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,12 +68,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.numad.aitranslator.R
 import com.numad.aitranslator.components.ArrowComponent
 import com.numad.aitranslator.components.Footer
 import com.numad.aitranslator.components.Header
+import com.numad.aitranslator.components.ShareCard
 import com.numad.aitranslator.components.SnackbarButton
 import com.numad.aitranslator.components.SnackbarComponent
 import com.numad.aitranslator.components.ToastComponent
@@ -72,6 +87,7 @@ import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.room.entities.TranslationEntity
 import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.PastelBlue
+import com.numad.aitranslator.ui.theme.PastelRed
 import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
 import com.numad.aitranslator.ui.theme.getDarkerVariant
@@ -81,7 +97,9 @@ import com.numad.aitranslator.ui.theme.pastelColors
 import com.numad.aitranslator.utils.CAMERA_ID
 import com.numad.aitranslator.utils.GALLERY_ID
 import com.numad.aitranslator.utils.LanguageUtils
+import com.numad.aitranslator.utils.shareBitmap
 import com.numad.aitranslator.viewmodels.HomeScreenViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -98,6 +116,14 @@ fun HomeScreen(
     val languageColorMap = remember { mutableMapOf<Pair<String, String>, Color>() }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+
+    // Bottom Modal for sharing or deleting
+    val translationObjectId = remember { mutableStateOf<Long?>(null) }
+    val translationObject = remember { mutableStateOf<TranslationEntity?>(null) }
+    val showModal = remember { mutableStateOf(false) }
+
+    // Share Alert Dialog
+    var showShareDialog by remember { mutableStateOf(false) }
 
     // Filtering Based on Languages
     val (languageFromFilter, setLanguageFromFilter) = remember { mutableStateOf<String?>(null) }
@@ -242,25 +268,10 @@ fun HomeScreen(
                                 )
                             )
                         },
-                        onLongClick = { id ->
-                            viewmodel.deleteTranslation(id, onCompletion = { it ->
-                                when (it) {
-                                    is GenericResponse.Success -> {
-                                        toastState.show(
-                                            context.getString(R.string.translation_deleted),
-                                            ToastType.SUCCESS,
-                                            durationMillis = 2000
-                                        )
-                                    }
-
-                                    is GenericResponse.Failure -> {
-                                        toastState.show(
-                                            context.getString(R.string.translation_deleted_error),
-                                            ToastType.SUCCESS
-                                        )
-                                    }
-                                }
-                            })
+                        onLongClick = { translation ->
+                            translationObjectId.value = translation.id
+                            translationObject.value = translation
+                            showModal.value = true
                         }
                     )
                 }
@@ -281,6 +292,74 @@ fun HomeScreen(
                     )
                 }
             })
+        }
+
+        AnimatedVisibility(visible = (showModal.value && translationObjectId.value != null && translationObject.value != null)) {
+            TranslationOptionBottomModal(
+                context = context,
+                onDismissRequest = {
+                    showModal.value = false
+                    translationObjectId.value = null
+                    translationObject.value = null
+                },
+                onShare = {
+                    showModal.value = false
+                    showShareDialog = true
+//                    translationObjectId.value = null
+//                    translationObject.value = null
+                },
+                onDelete = {
+                    showModal.value = false
+                    viewmodel.deleteTranslation(
+                        translationObjectId.value!!,
+                        onCompletion = {
+                            translationObjectId.value = null
+                            translationObject.value = null
+                            when (it) {
+                                is GenericResponse.Success -> {
+                                    toastState.show(
+                                        context.getString(R.string.translation_deleted),
+                                        ToastType.SUCCESS,
+                                        durationMillis = 2000
+                                    )
+                                }
+
+                                is GenericResponse.Failure -> {
+                                    toastState.show(
+                                        context.getString(R.string.translation_deleted_error),
+                                        ToastType.SUCCESS
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
+            )
+        }
+
+        AnimatedVisibility(showShareDialog && translationObjectId.value != null && translationObject.value != null) {
+            Dialog(
+                onDismissRequest = { showShareDialog = false }
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    tonalElevation = 8.dp,
+                    modifier = Modifier.padding(4.dp)
+                ) {
+                    ShareCard(
+                        translation = translationObject.value,
+                        pastelColor = getRandomPastelColor(),
+                    ) { bitmap: Bitmap ->
+                        context.shareBitmap(bitmap)
+                        showShareDialog = false
+                        scope.launch {
+                            delay(1000)
+                            translationObjectId.value = null
+                            translationObject.value = null
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -324,7 +403,7 @@ fun Translations(
     onApplyLanguageFilter: (String, String) -> Unit,
     onSearchFilter: (String) -> Unit,
     onClick: (Long) -> Unit,
-    onLongClick: (Long) -> Unit = {}
+    onLongClick: (TranslationEntity) -> Unit = {}
 ) {
     Column {
         TextField(
@@ -396,7 +475,6 @@ fun Translations(
                     languageFrom = if (languageFrom == LanguageUtils.UNKNOWN) "" else languageFrom,
                     languageTo = if (languageTo == LanguageUtils.UNKNOWN) "" else languageTo,
                     languageColorMap = languageColorMap,
-                    context = context,
                     isForTranslation = false,
                     onClickListener = onApplyLanguageFilter
                 )
@@ -418,14 +496,13 @@ fun Translations(
                         .combinedClickable(onClick = {
                             onClick(translations[item].id)
                         }, onLongClick = {
-                            onLongClick(translations[item].id)
+                            onLongClick(translations[item])
                         })
                 ) {
                     LanguageToLanguage(
                         languageFrom = translations[item].languageFrom,
                         languageTo = translations[item].languageTo,
-                        languageColorMap = languageColorMap,
-                        context = context
+                        languageColorMap = languageColorMap
                     )
                     Text(
                         text = context.getString(
@@ -454,7 +531,6 @@ fun Translations(
 @Composable
 private fun LanguageToLanguage(
     modifier: Modifier = Modifier,
-    context: Context,
     languageFrom: String,
     languageTo: String,
     languageColorMap: Map<Pair<String, String>, Color>,
@@ -511,6 +587,79 @@ private fun LanguageToLanguage(
                 color = color,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TranslationOptionBottomModal(
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+    onShare: () -> Unit,
+    onDelete: () -> Unit,
+    context: Context,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState()
+    ) {
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(16.dp, 16.dp, 16.dp, 32.dp)
+        ) {
+            Text(
+                context.getString(R.string.translation_options),
+                style = Typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onShare()
+                    }
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = context.getString(R.string.share),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    context.getString(R.string.share),
+                    style = Typography.bodyLarge
+                )
+            }
+
+            HorizontalDivider()
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onDelete()
+                    }
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = context.getString(R.string.delete),
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.Red
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    context.getString(R.string.delete),
+                    style = Typography.bodyLarge,
+                    color = PastelRed
+                )
+            }
         }
     }
 }
