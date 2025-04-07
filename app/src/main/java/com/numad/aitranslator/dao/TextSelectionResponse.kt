@@ -1,5 +1,8 @@
 package com.numad.aitranslator.dao
 
+/**
+ * Data class that is used to structure the response from Firebase's text recognition model.
+ * */
 data class TextSelectionResponse(
     var success: Boolean,
     var texts: List<String>,

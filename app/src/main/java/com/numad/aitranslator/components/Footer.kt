@@ -22,6 +22,12 @@ import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.White
 
+/**
+ * UI Component that renders the bottom navigation bar of the application.
+ * In the context of this application, it gives the user access to 2 modes of translation:
+ * 1. Text to Translation
+ * 2. Image to Text to Translation
+ * */
 @Composable
 fun Footer(
     modifier: Modifier,

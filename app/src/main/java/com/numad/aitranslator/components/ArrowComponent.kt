@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.sin
 
+/**
+ * Helper component that draws an arrow in the direction of the @param angle specified.
+ * */
 @Composable
 fun ArrowComponent(
     modifier: Modifier = Modifier,

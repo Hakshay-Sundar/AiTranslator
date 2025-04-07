@@ -22,6 +22,9 @@ import com.numad.aitranslator.ui.theme.Pixelify
 import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
 
+/**
+ * A UI component that is used to showcase the language selected by the user or detected by the app.
+ * */
 @Composable
 fun LanguageHolder(
     language: String? = null, onClick: () -> Unit, background: Color = White

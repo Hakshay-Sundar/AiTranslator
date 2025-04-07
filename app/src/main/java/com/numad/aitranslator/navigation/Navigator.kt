@@ -13,6 +13,12 @@ import com.numad.aitranslator.screens.TextSelectionScreen
 import com.numad.aitranslator.screens.TranslatorScreen
 import com.numad.aitranslator.utils.LanguageUtils
 
+/**
+ * The navigator is responsible for rendering the UI.
+ * It initialises by loading up the HomeScreen.
+ * <br><br>
+ * We pass the routes to various branches of the navigation graph wrapped in composable objects.
+ * */
 @Composable
 fun Navigator(navController: NavHostController, modifier: Modifier) {
     NavHost(
@@ -80,6 +86,14 @@ fun Navigator(navController: NavHostController, modifier: Modifier) {
     }
 }
 
+/**
+ * This sealed class tracks all possible screens we have within the app.
+ * This application has 4 screens:
+ * 1. HomeScreen - Dashboard screen
+ * 2. TranslatorScreen - Screen where the user can translate text
+ * 3. SelectLanguageScreen - Screen where the user can select a language either for translation or detection
+ * 4. TextSelectionScreen - Screen where the user can select texts obtained from reading an image.
+ * */
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Translate :
@@ -106,7 +120,6 @@ sealed class Screen(val route: String) {
  * */
 data class TranslateScreenParams(val type: String) {
     companion object {
-        const val AUDIO_TO_TRANSLATION = "mic"
         const val TEXT_TO_TRANSLATION = "text"
         const val IMAGE_TO_TRANSLATION = "image"
     }

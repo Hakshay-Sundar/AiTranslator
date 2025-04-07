@@ -46,6 +46,10 @@ import com.numad.aitranslator.ui.theme.getRandomPastelColor
 import com.numad.aitranslator.ui.theme.getVariationOfColor
 import kotlinx.coroutines.launch
 
+/**
+ * A UI component that is used to put all the information available about a translation in a single card.
+ * This card is used to share the translation with other applications or contacts.
+ * */
 @Composable
 fun ShareCard(
     modifier: Modifier = Modifier,

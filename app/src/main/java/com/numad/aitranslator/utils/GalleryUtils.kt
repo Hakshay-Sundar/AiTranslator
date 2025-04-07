@@ -13,6 +13,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 
+/**
+ * This is a utility function that is used to invoke the gallery.
+ * It checks if the application has the permission to access the gallery.
+ * In case, the application does not, it requests the permission.
+ * If the permission exists, it fetches the image from the gallery.
+ * @param onImageSelected This is a callback that is invoked when the image is selected.
+ * @param onPermissionDenied This is a callback that is invoked when the permission is denied.
+ * @return a composable function that handles access to the gallery and invokes a callback based
+ * on the state of the application.
+ * */
 @Composable
 fun GalleryImagePicker(
     onImageSelected: (Bitmap?) -> Unit,

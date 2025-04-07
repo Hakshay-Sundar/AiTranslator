@@ -31,6 +31,12 @@ import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.Pink40
 import com.numad.aitranslator.ui.theme.White
 
+/**
+ * A helper component that is used to inflate a snackbar to allow the user to choose
+ * how they would like to source their image. They could choose from the following:
+ * 1. Camera
+ * 2. Gallery
+ * */
 @Composable
 fun SnackbarComponent(
     modifier: Modifier = Modifier,

@@ -34,6 +34,15 @@ import androidx.compose.ui.unit.dp
 import com.numad.aitranslator.ui.theme.White
 import kotlinx.coroutines.delay
 
+/**
+ * A custom Toast component that is used to show toast messages on the screen.
+ * It has 3 states:
+ * 1. Success
+ * 2. Warning
+ * 3. Error
+ * <br><br>
+ * It shows the toast message for a specified duration and then hides it automatically.
+ * */
 @Composable
 fun ToastComponent(
     toastState: ToastState,
@@ -125,12 +134,18 @@ private fun ToastContent(
     }
 }
 
-// Helper function to remember toast state
+/**
+ * Helper function to remember toast state
+ */
 @Composable
 fun rememberToastState(): ToastState {
     return remember { ToastState() }
 }
 
+/**
+ * Stores the state of the toast component that is used to show toast messages.
+ * It is used to show the toast message on the screen.
+ * */
 class ToastState {
     var message by mutableStateOf("")
     var type by mutableStateOf(ToastType.SUCCESS)
@@ -164,7 +179,7 @@ enum class ToastType {
 
 @Preview(showBackground = true)
 @Composable
-fun ToastComponentPreview() {
+private fun ToastComponentPreview() {
     val toastState = rememberToastState()
 
     LaunchedEffect(Unit) {

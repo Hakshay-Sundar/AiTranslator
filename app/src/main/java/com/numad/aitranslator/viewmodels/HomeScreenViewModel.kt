@@ -11,6 +11,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * This is the view model for the home screen. It is used to handle fetching all the data
+ * required to manage the dashboard of the application.
+ * <br>It fetches the data from the repository and exposes it to the view.
+ * <br>It is also used to handle the deletion of a translation.
+ * */
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val translatorRepository: TranslatorRepository

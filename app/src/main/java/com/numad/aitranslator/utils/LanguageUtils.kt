@@ -2,6 +2,17 @@ package com.numad.aitranslator.utils
 
 import android.util.Log
 
+/**
+ * This is a utility class that is used to handle language related operations.
+ * Since a Firebase ML model is used to detect the language of the text that the user has typed in,
+ * we maintain a dictionary of language codes and language names that the model supports.
+ * @property detectionLanguageDictionary A dictionary that maps language codes to language names. It supports 103 languages.
+ * Similarly, a Firebase ML model is used to translate the text into other languages.
+ * We maintain a dictionary of language codes and language names that the second model supports.
+ * @property translationLanguageDictionary A dictionary that maps language codes to language names. It supports 59 languages.
+ * <br><br>Since there is a clear disparity in the number of supported languages, the model first
+ * converts all input to English following which it translates to any of the supported languages.
+ * */
 object LanguageUtils {
     private val detectionLanguageDictionary = HashMap<String, String>()
     private val translationLanguageDictionary = HashMap<String, String>()

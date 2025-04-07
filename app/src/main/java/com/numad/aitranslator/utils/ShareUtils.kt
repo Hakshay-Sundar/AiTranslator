@@ -7,6 +7,11 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * This is an extension function for the Context class.
+ * It takes a bitmap as input, saves it to the cache directory, and shares it using an implicit intent.
+ * @param bitmap The bitmap to be shared.
+ * */
 fun Context.shareBitmap(bitmap: Bitmap) {
     val imagesFolder = File(cacheDir, "images")
     imagesFolder.mkdirs()

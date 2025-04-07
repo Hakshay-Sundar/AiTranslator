@@ -16,6 +16,9 @@ import com.numad.aitranslator.navigation.Navigator
 import com.numad.aitranslator.ui.theme.AiTranslatorTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * The main activity sets the theme and calls upon the navigator to render the UI.
+ * */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")

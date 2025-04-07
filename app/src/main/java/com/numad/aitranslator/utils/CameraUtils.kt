@@ -17,6 +17,16 @@ import java.io.File
 const val CAMERA_ID = 101
 const val GALLERY_ID = 102
 
+/**
+ * This is a utility function that is used to invoke the camera.
+ * It checks if the application has the permission to access the camera.
+ * In case, the application does not, it requests the permission.
+ * If the permission exists, it fetches the image from the camera.
+ * @param onImageCaptured This is a callback that is invoked when the image is captured.
+ * @param onPermissionDenied This is a callback that is invoked when the permission is denied.
+ * @return a composable function that handles access to the camera and invokes a callback based
+ * on the state of the application.
+ * */
 @Composable
 fun CameraHandler(
     onImageCaptured: (Bitmap?) -> Unit,

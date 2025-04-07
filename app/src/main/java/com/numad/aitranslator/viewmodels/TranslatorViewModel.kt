@@ -17,6 +17,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * This is the most important view model for the application. It is used to handle all the
+ * actions that are required to translate the text. (detection, translation, etc...)
+ * It is also used to handle all the actions that are required to save the translation.
+ * */
 @HiltViewModel
 class TranslatorViewModel @Inject constructor(
     @ApplicationContext private val context: Context,

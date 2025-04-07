@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * This is the view model for the text selection screen. It is used to handle fetching the text
+ * from the Firebase ML model using the input image.
+ * */
 @HiltViewModel
 class TextSelectionViewModel @Inject constructor(
     private val translatorRepository: TranslatorRepository

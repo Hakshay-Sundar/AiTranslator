@@ -15,6 +15,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.numad.aitranslator.R
 
+/**
+ * Helper component that draws an image with a wide padding and a click listener.
+ * */
 @Composable
 fun ClickableImage(
     modifier: Modifier = Modifier,

@@ -20,10 +20,12 @@ import com.numad.aitranslator.R
 import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
 
+/**
+ * A UI component that renders a custom toolbar with no tools.
+ * It is used as the top bar of the application.
+ * */
 @Composable
-fun Header(
-    modifier: Modifier = Modifier
-) {
+fun Header() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
