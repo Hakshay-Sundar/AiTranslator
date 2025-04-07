@@ -1,7 +1,7 @@
 # AiTranslator
 
 <div align="center">
-  <img src="./appScreenshots/banner.png" alt="AiTranslator Banner" width="700">
+  <img src="./appScreenshots/banner.png" alt="AiTranslator Banner" width="220">
 </div>
 
 ## Overview
