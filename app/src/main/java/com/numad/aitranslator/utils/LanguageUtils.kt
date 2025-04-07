@@ -7,6 +7,7 @@ object LanguageUtils {
     private val translationLanguageDictionary = HashMap<String, String>()
     const val DETECTION_DICTIONARY = 1;
     const val TRANSLATION_DICTIONARY = 2;
+    const val UNKNOWN = "Unknown"
 
     init {
         setupDetectionLanguageDictionary()
@@ -181,8 +182,34 @@ object LanguageUtils {
         translationLanguageDictionary["zh"] = "Chinese"
     }
 
-    fun getLanguageName(languageCode: String): String {
-        return detectionLanguageDictionary[languageCode] ?: "Unknown"
+    /**
+     * A function to get the language name from the language code.
+     * @param languageCode The code of the language.
+     * @param dictionaryType This utility file handles a detection dictionary and a translation dictionary.
+     * You must provide details on which dictionary to use.
+     *
+     * @return The language code of the language. "Unknown" if the language is not found.
+     * In case something were to go wrong, and no language Name were to be provided, the default language is English.
+     * */
+    fun getLanguageName(languageCode: String?, dictionaryType: Int): String {
+        if (languageCode.isNullOrEmpty()) {
+            return UNKNOWN
+        }
+        val dictionary = when (dictionaryType) {
+            DETECTION_DICTIONARY -> {
+                this.detectionLanguageDictionary
+            }
+
+            TRANSLATION_DICTIONARY -> {
+                this.translationLanguageDictionary
+            }
+
+            else -> {
+                Log.e("LanguageUtils", "Invalid dictionary type: $dictionaryType")
+                return UNKNOWN
+            }
+        }
+        return dictionary[languageCode] ?: UNKNOWN
     }
 
     /**
@@ -195,8 +222,8 @@ object LanguageUtils {
      * In case something were to go wrong, and no language Name were to be provided, the default language is English.
      * */
     fun getLanguageCode(languageName: String?, dictionaryType: Int): String {
-        if (languageName == null) {
-            return "en"
+        if (languageName.isNullOrEmpty()) {
+            return ""
         }
 
         val dictionary = when (dictionaryType) {

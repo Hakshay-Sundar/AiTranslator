@@ -35,6 +35,7 @@ import com.numad.aitranslator.R
 import com.numad.aitranslator.components.ClickableImage
 import com.numad.aitranslator.components.Header
 import com.numad.aitranslator.ui.theme.DividerGray
+import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
 import com.numad.aitranslator.viewmodels.TranslatorViewModel
 
@@ -129,7 +130,8 @@ fun LanguageItem(
             text = language,
             modifier = modifier
                 .fillMaxWidth(),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            style = Typography.titleSmall
         )
         Spacer(
             modifier = Modifier

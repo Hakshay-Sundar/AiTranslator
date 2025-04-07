@@ -97,7 +97,10 @@ class TranslatorViewModel @Inject constructor(
         viewModelScope.launch {
             val detectedLanguage = translatorRepository.detectLanguage(text)
             if (detectedLanguage.isNotEmpty()) {
-                _languageFrom.value = LanguageUtils.getLanguageName(detectedLanguage)
+                _languageFrom.value = LanguageUtils.getLanguageName(
+                    detectedLanguage,
+                    LanguageUtils.DETECTION_DICTIONARY
+                )
             }
         }
     }

@@ -24,7 +24,9 @@ class HomeScreenViewModel @Inject constructor(
 
     fun fetchTranslations() {
         viewModelScope.launch {
-            _translations.value = translatorRepository.fetchTranslations()
+            _translations.value = translatorRepository.fetchTranslations().sortedByDescending {
+                it.timestampMillis
+            }
         }
     }
 

@@ -25,4 +25,9 @@
     <string name="no_text_in_image">No text found in the image.</string>
     <string name="select_text">Select text to translate</string>
     <string name="confirm">Confirm</string>
+    <string name="all">All</string>
+    <string name="language_badge">%1$s &#8658; %2$s</string>
+    <string name="no_text_selected">Please select some text to translate.</string>
+    <string name="search_description">Search</string>
+    <string name="clear_search_description">Clear Search</string>
 </resources>

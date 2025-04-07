@@ -8,33 +8,48 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.numad.aitranslator.R
+import com.numad.aitranslator.components.ArrowComponent
 import com.numad.aitranslator.components.Footer
 import com.numad.aitranslator.components.Header
 import com.numad.aitranslator.components.SnackbarButton
@@ -55,10 +71,16 @@ import com.numad.aitranslator.navigation.Screen
 import com.numad.aitranslator.navigation.TranslateScreenParams
 import com.numad.aitranslator.room.entities.TranslationEntity
 import com.numad.aitranslator.ui.theme.Black
+import com.numad.aitranslator.ui.theme.PastelBlue
 import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
+import com.numad.aitranslator.ui.theme.getDarkerVariant
+import com.numad.aitranslator.ui.theme.getRandomPastelColor
+import com.numad.aitranslator.ui.theme.getVariationOfColor
+import com.numad.aitranslator.ui.theme.pastelColors
 import com.numad.aitranslator.utils.CAMERA_ID
 import com.numad.aitranslator.utils.GALLERY_ID
+import com.numad.aitranslator.utils.LanguageUtils
 import com.numad.aitranslator.viewmodels.HomeScreenViewModel
 import kotlinx.coroutines.launch
 
@@ -73,9 +95,79 @@ fun HomeScreen(
     val toastState = rememberToastState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val languageColorMap = remember { mutableMapOf<Pair<String, String>, Color>() }
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    // Filtering Based on Languages
+    val (languageFromFilter, setLanguageFromFilter) = remember { mutableStateOf<String?>(null) }
+    val (languageToFilter, setLanguageToFilter) = remember { mutableStateOf<String?>(null) }
+    val (searchFilter, setSearchFilter) = remember { mutableStateOf("") }
+    val filteredTranslations by remember(
+        translations,
+        languageFromFilter,
+        languageToFilter,
+        searchFilter
+    ) {
+        derivedStateOf {
+            translations.let { list ->
+                var result = list
+
+                if (languageFromFilter != null && languageToFilter != null) {
+                    result = result.filter { translation ->
+                        (translation.languageFrom == languageFromFilter) &&
+                                (translation.languageTo == languageToFilter)
+                    }
+                }
+
+                if (searchFilter.isNotEmpty()) {
+                    result = result.filter { translation ->
+                        translation.text.contains(searchFilter, ignoreCase = true) ||
+                                translation.translatedText.contains(searchFilter, ignoreCase = true)
+                    }
+                }
+
+                result.sortedByDescending { it.timestampMillis }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewmodel.fetchTranslations()
+    }
+
+    LaunchedEffect(translations) {
+        if (translations.isNotEmpty() && translations.size != languageColorMap.size) {
+            val usedColors = mutableSetOf<Color>()
+
+            translations.forEach { translation ->
+                val languagePair = Pair(
+                    LanguageUtils.getLanguageCode(
+                        translation.languageFrom,
+                        LanguageUtils.DETECTION_DICTIONARY
+                    ),
+                    LanguageUtils.getLanguageCode(
+                        translation.languageTo,
+                        LanguageUtils.TRANSLATION_DICTIONARY
+                    )
+                )
+
+                if (!languageColorMap.containsKey(languagePair)) {
+                    var newColor = getRandomPastelColor()
+
+                    // If all colors are used or we happen to get a very similar color, create variations
+                    var attempts = 0
+                    while (usedColors.contains(newColor) && attempts < 10) {
+                        // If we've used all pastel colors, start creating variations
+                        newColor = if (usedColors.size >= pastelColors.size)
+                            newColor.getVariationOfColor() else getRandomPastelColor()
+                        attempts++
+                    }
+                    languageColorMap[languagePair] = newColor
+                    usedColors.add(newColor)
+                }
+            }
+        }
     }
 
     Scaffold(snackbarHost = {
@@ -105,11 +197,18 @@ fun HomeScreen(
         )
     }) { paddingValues ->
         Column(
-            modifier = modifier.padding(paddingValues)
+            modifier = modifier
+                .padding(paddingValues)
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        focusManager.clearFocus()
+                    }
+                }
         ) {
             Header()
             Box(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
             ) {
                 this@Column.AnimatedVisibility(translations.isEmpty()) {
                     NoTranslations(onClick = {
@@ -119,32 +218,51 @@ fun HomeScreen(
                     })
                 }
                 this@Column.AnimatedVisibility(translations.isNotEmpty()) {
-                    Translations(context = context, translations = translations, onClick = { id ->
-                        navController.navigate(
-                            route = Screen.Translate.createRoute(
-                                existingTranslationId = id
+                    Translations(
+                        context = context,
+                        translations = filteredTranslations,
+                        languageColorMap = languageColorMap,
+                        searchFilter = searchFilter,
+                        focusRequester = focusRequester,
+                        onResetLanguageFilter = {
+                            setLanguageFromFilter(null)
+                            setLanguageToFilter(null)
+                        },
+                        onApplyLanguageFilter = { langFromCode, langToCode ->
+                            setLanguageFromFilter(langFromCode)
+                            setLanguageToFilter(langToCode)
+                        },
+                        onSearchFilter = { searchFilter ->
+                            setSearchFilter(searchFilter)
+                        },
+                        onClick = { id ->
+                            navController.navigate(
+                                route = Screen.Translate.createRoute(
+                                    existingTranslationId = id
+                                )
                             )
-                        )
-                    }, onLongClick = { id ->
-                        viewmodel.deleteTranslation(id, onCompletion = { it ->
-                            when (it) {
-                                is GenericResponse.Success -> {
-                                    toastState.show(
-                                        context.getString(R.string.translation_deleted),
-                                        ToastType.SUCCESS,
-                                        durationMillis = 2000
-                                    )
-                                }
+                        },
+                        onLongClick = { id ->
+                            viewmodel.deleteTranslation(id, onCompletion = { it ->
+                                when (it) {
+                                    is GenericResponse.Success -> {
+                                        toastState.show(
+                                            context.getString(R.string.translation_deleted),
+                                            ToastType.SUCCESS,
+                                            durationMillis = 2000
+                                        )
+                                    }
 
-                                is GenericResponse.Failure -> {
-                                    toastState.show(
-                                        context.getString(R.string.translation_deleted_error),
-                                        ToastType.SUCCESS
-                                    )
+                                    is GenericResponse.Failure -> {
+                                        toastState.show(
+                                            context.getString(R.string.translation_deleted_error),
+                                            ToastType.SUCCESS
+                                        )
+                                    }
                                 }
-                            }
-                        })
-                    })
+                            })
+                        }
+                    )
                 }
                 ToastComponent(toastState = toastState)
             }
@@ -198,48 +316,201 @@ fun NoTranslations(
 fun Translations(
     context: Context,
     modifier: Modifier = Modifier,
+    languageColorMap: Map<Pair<String, String>, Color>,
     translations: List<TranslationEntity>,
+    focusRequester: FocusRequester,
+    searchFilter: String? = null,
+    onResetLanguageFilter: () -> Unit,
+    onApplyLanguageFilter: (String, String) -> Unit,
+    onSearchFilter: (String) -> Unit,
     onClick: (Long) -> Unit,
     onLongClick: (Long) -> Unit = {}
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2), // Sets exactly 2 columns
-        contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(translations.size) { item ->
-            Box(
-                modifier = modifier
-                    .size(150.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(color = White)
-                    .border(width = 1.dp, color = Black, shape = RoundedCornerShape(12.dp))
-                    .combinedClickable(onClick = {
-                        onClick(translations[item].id)
-                    }, onLongClick = {
-                        onLongClick(translations[item].id)
-                    })
-            ) {
+    Column {
+        TextField(
+            value = searchFilter ?: "",
+            onValueChange = { searchFilter ->
+                onSearchFilter(searchFilter)
+            },
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .focusRequester(focusRequester)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { /* Do nothing, just consume the event */ })
+                },
+            leadingIcon = {
+                Image(
+                    painter = painterResource(id = R.drawable.search),
+                    contentDescription = stringResource(R.string.search_description)
+                )
+            },
+            trailingIcon = {
+                Image(
+                    painter = painterResource(id = R.drawable.close),
+                    contentDescription = stringResource(R.string.clear_search_description),
+                    modifier = Modifier.clickable {
+                        onSearchFilter("")
+                    }
+                )
+            },
+            label = {
+                Text(text = stringResource(R.string.search_description))
+            },
+            colors = TextFieldDefaults.colors().copy(
+                unfocusedContainerColor = White,
+                focusedContainerColor = White,
+                unfocusedIndicatorColor = Black,
+                focusedIndicatorColor = Black
+            )
+        )
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            item {
                 Text(
-                    text = context.getString(
-                        R.string.translation_representation, (translations[item].text.substring(
-                            0, clampValue(25, 0, translations[item].text.length)
-                        ) + "..."), if (translations[item].translatedText.isNotEmpty()) {
-                            translations[item].translatedText.substring(
-                                0, clampValue(25, 0, translations[item].translatedText.length)
-                            ) + "..."
-                        } else {
-                            context.getString(R.string.unavailable)
-                        }
-                    ),
-                    modifier = modifier
-                        .padding(12.dp)
-                        .align(Alignment.Center),
-                    textAlign = TextAlign.Center,
-                    style = Typography.bodySmall
+                    text = context.getString(R.string.all),
+                    modifier = Modifier
+                        .height(24.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            color = Black,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(vertical = 4.dp, horizontal = 8.dp)
+                        .clickable(onClick = onResetLanguageFilter),
+                    style = Typography.labelSmall,
+                    color = White
                 )
             }
+            items(languageColorMap.keys.toList()) { (langFrom, langTo) ->
+                val languageFrom =
+                    LanguageUtils.getLanguageName(langFrom, LanguageUtils.DETECTION_DICTIONARY)
+                val languageTo =
+                    LanguageUtils.getLanguageName(langTo, LanguageUtils.TRANSLATION_DICTIONARY)
+                LanguageToLanguage(
+                    languageFrom = if (languageFrom == LanguageUtils.UNKNOWN) "" else languageFrom,
+                    languageTo = if (languageTo == LanguageUtils.UNKNOWN) "" else languageTo,
+                    languageColorMap = languageColorMap,
+                    context = context,
+                    isForTranslation = false,
+                    onClickListener = onApplyLanguageFilter
+                )
+            }
+        }
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2), // Sets exactly 2 columns
+            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 8.dp, top = 0.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(translations.size) { item ->
+                Column(
+                    modifier = modifier
+                        .size(100.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(color = White)
+                        .border(width = 1.dp, color = Black, shape = RoundedCornerShape(12.dp))
+                        .combinedClickable(onClick = {
+                            onClick(translations[item].id)
+                        }, onLongClick = {
+                            onLongClick(translations[item].id)
+                        })
+                ) {
+                    LanguageToLanguage(
+                        languageFrom = translations[item].languageFrom,
+                        languageTo = translations[item].languageTo,
+                        languageColorMap = languageColorMap,
+                        context = context
+                    )
+                    Text(
+                        text = context.getString(
+                            R.string.translation_representation, (translations[item].text.substring(
+                                0, clampValue(10, 0, translations[item].text.length)
+                            ) + "..."), if (translations[item].translatedText.isNotEmpty()) {
+                                translations[item].translatedText.substring(
+                                    0, clampValue(10, 0, translations[item].translatedText.length)
+                                ) + "..."
+                            } else {
+                                context.getString(R.string.unavailable)
+                            }
+                        ),
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        textAlign = TextAlign.Center,
+                        style = Typography.bodySmall,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LanguageToLanguage(
+    modifier: Modifier = Modifier,
+    context: Context,
+    languageFrom: String,
+    languageTo: String,
+    languageColorMap: Map<Pair<String, String>, Color>,
+    isForTranslation: Boolean = true,
+    onClickListener: (String, String) -> Unit = { _, _ -> }
+) {
+    val langFromCode = LanguageUtils.getLanguageCode(
+        languageFrom,
+        LanguageUtils.DETECTION_DICTIONARY
+    )
+    val langToCode = LanguageUtils.getLanguageCode(
+        languageTo,
+        LanguageUtils.TRANSLATION_DICTIONARY
+    )
+    val languagePair = Pair(langFromCode, langToCode)
+    val badgeColor = languageColorMap[languagePair] ?: PastelBlue
+
+    Box(
+        modifier = modifier
+            .padding(
+                start = if (isForTranslation) 12.dp else 0.dp,
+                top = if (isForTranslation) 12.dp else 0.dp
+            )
+            .height(24.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(badgeColor.copy(alpha = 0.2f))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .clickable(
+                enabled = !isForTranslation,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                onClickListener(languageFrom, languageTo)
+            }
+    ) {
+        Row {
+            val color = badgeColor.getDarkerVariant()
+            Text(
+                text = languageFrom,
+                style = Typography.labelSmall,
+                color = color,
+                textAlign = TextAlign.Center
+            )
+            ArrowComponent(
+                modifier = Modifier
+                    .size(width = 12.dp, height = 16.dp)
+                    .padding(2.dp)
+                    .align(Alignment.CenterVertically),
+                color = color
+            )
+            Text(
+                text = languageTo,
+                style = Typography.labelSmall,
+                color = color,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.numad.aitranslator.R
 import com.numad.aitranslator.ui.theme.Black
+import com.numad.aitranslator.ui.theme.Pixelify
 import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
 
@@ -38,7 +39,9 @@ fun LanguageHolder(
     ) {
         Text(
             text = language ?: stringResource(R.string.select_language_description),
-            style = Typography.bodySmall
+            style = Typography.bodySmall.copy(
+                fontFamily = Pixelify
+            )
         )
     }
 }

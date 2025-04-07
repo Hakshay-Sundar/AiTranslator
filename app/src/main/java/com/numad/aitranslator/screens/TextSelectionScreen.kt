@@ -34,6 +34,7 @@ import com.numad.aitranslator.components.rememberToastState
 import com.numad.aitranslator.navigation.Screen
 import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.DividerGray
+import com.numad.aitranslator.ui.theme.Pixelify
 import com.numad.aitranslator.ui.theme.SelectedBlue
 import com.numad.aitranslator.ui.theme.Typography
 import com.numad.aitranslator.ui.theme.White
@@ -209,6 +210,14 @@ fun TextSelectionScreen(
                 )
                 .align(Alignment.BottomCenter)
                 .clickable {
+                    if (selectedTexts.value.isEmpty()) {
+                        toastState.show(
+                            context.getString(R.string.no_text_selected),
+                            ToastType.WARNING,
+                        )
+                        return@clickable
+                    }
+
                     navController.navigate(
                         route = Screen.Translate.createRoute(
                             selectedText = selectedTexts.value.sorted()
@@ -233,6 +242,9 @@ fun TextSelectionScreen(
                     .padding(8.dp),
                 text = context.getString(R.string.confirm),
                 textAlign = TextAlign.Center,
+                style = Typography.bodyLarge.copy(
+                    fontFamily = Pixelify
+                )
             )
         }
         ToastComponent(
