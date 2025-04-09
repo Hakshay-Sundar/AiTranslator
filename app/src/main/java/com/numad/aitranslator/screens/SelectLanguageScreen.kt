@@ -5,9 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,14 +23,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.numad.aitranslator.R
-import com.numad.aitranslator.components.ClickableImage
 import com.numad.aitranslator.components.Header
 import com.numad.aitranslator.ui.theme.DividerGray
 import com.numad.aitranslator.ui.theme.Typography
@@ -58,32 +54,7 @@ fun SelectLanguageScreen(
         modifier = modifier
             .fillMaxSize()
     ) {
-        Row(
-            modifier = Modifier
-                .background(color = White)
-                .layoutId("header")
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(0.2f)
-                    .align(Alignment.CenterVertically)
-                    .clickable {
-                        navController.popBackStack()
-                    }, contentAlignment = Alignment.Center
-            ) {
-                ClickableImage(
-                    imageId = R.drawable.back_arrow,
-                    descriptionId = R.string.back_button_description
-                ) {
-                    navController.popBackStack()
-                }
-            }
-            Box(
-                modifier = Modifier.weight(0.8f)
-            ) {
-                Header()
-            }
-        }
+        Header()
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()

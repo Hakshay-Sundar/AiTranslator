@@ -97,6 +97,7 @@ import com.numad.aitranslator.ui.theme.pastelColors
 import com.numad.aitranslator.utils.CAMERA_ID
 import com.numad.aitranslator.utils.GALLERY_ID
 import com.numad.aitranslator.utils.LanguageUtils
+import com.numad.aitranslator.utils.formatTimestamp
 import com.numad.aitranslator.utils.shareBitmap
 import com.numad.aitranslator.viewmodels.HomeScreenViewModel
 import kotlinx.coroutines.delay
@@ -225,6 +226,7 @@ fun HomeScreen(
         Column(
             modifier = modifier
                 .padding(paddingValues)
+                .background(White)
                 .pointerInput(Unit) {
                     detectTapGestures {
                         focusManager.clearFocus()
@@ -305,8 +307,6 @@ fun HomeScreen(
                 onShare = {
                     showModal.value = false
                     showShareDialog = true
-//                    translationObjectId.value = null
-//                    translationObject.value = null
                 },
                 onDelete = {
                     showModal.value = false
@@ -416,6 +416,11 @@ fun Translations(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .focusRequester(focusRequester)
+                .border(
+                    width = 1.dp,
+                    color = Black,
+                    shape = RoundedCornerShape(12.dp)
+                )
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { /* Do nothing, just consume the event */ })
                 },
@@ -481,47 +486,88 @@ fun Translations(
             }
         }
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2), // Sets exactly 2 columns
+            columns = GridCells.Fixed(1), // Sets exactly 1 columns
             contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 8.dp, top = 0.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(translations.size) { item ->
-                Column(
-                    modifier = modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(color = White)
-                        .border(width = 1.dp, color = Black, shape = RoundedCornerShape(12.dp))
-                        .combinedClickable(onClick = {
-                            onClick(translations[item].id)
-                        }, onLongClick = {
-                            onLongClick(translations[item])
-                        })
+                val languageFrom = translations[item].languageFrom
+                val languageTo = translations[item].languageTo
+                val cardColor = fetchCardColor(
+                    languageFrom,
+                    languageTo,
+                    languageColorMap
+                )
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    shadowElevation = 4.dp,
+                    color = cardColor.getVariationOfColor(),
                 ) {
-                    LanguageToLanguage(
-                        languageFrom = translations[item].languageFrom,
-                        languageTo = translations[item].languageTo,
-                        languageColorMap = languageColorMap
-                    )
-                    Text(
-                        text = context.getString(
-                            R.string.translation_representation, (translations[item].text.substring(
-                                0, clampValue(10, 0, translations[item].text.length)
-                            ) + "..."), if (translations[item].translatedText.isNotEmpty()) {
-                                translations[item].translatedText.substring(
-                                    0, clampValue(10, 0, translations[item].translatedText.length)
-                                ) + "..."
-                            } else {
-                                context.getString(R.string.unavailable)
-                            }
-                        ),
+                    Column(
                         modifier = modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        textAlign = TextAlign.Center,
-                        style = Typography.bodySmall,
-                    )
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(color = cardColor)
+                            .border(
+                                width = 1.dp,
+                                color = cardColor.getDarkerVariant(),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .combinedClickable(onClick = {
+                                onClick(translations[item].id)
+                            }, onLongClick = {
+                                onLongClick(translations[item])
+                            })
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            LanguageToLanguage(
+                                languageFrom = translations[item].languageFrom,
+                                languageTo = translations[item].languageTo,
+                                languageColorMap = languageColorMap
+                            )
+                            Text(
+                                text = formatTimestamp(translations[item].timestampMillis),
+                                modifier = Modifier
+                                    .padding(top = 8.dp, end = 12.dp),
+                                textAlign = TextAlign.End,
+                                color = cardColor.getDarkerVariant(),
+                                style = Typography.labelSmall
+                            )
+                        }
+                        Text(
+                            text = context.getString(
+                                R.string.translation_representation,
+                                (
+                                        if (translations[item].text.length < 35) {
+                                            translations[item].text
+
+                                        } else {
+                                            translations[item].text.substring(
+                                                0, clampValue(35, 0, translations[item].text.length)
+                                            ) + "..."
+                                        }
+                                        ),
+                                if (translations[item].translatedText.isNotEmpty() && translations[item].translatedText.length < 50) {
+                                    translations[item].translatedText
+                                } else if (translations[item].translatedText.isNotEmpty()) {
+                                    translations[item].translatedText.substring(
+                                        0,
+                                        clampValue(50, 0, translations[item].translatedText.length)
+                                    ) + "..."
+                                } else {
+                                    context.getString(R.string.unavailable)
+                                }
+                            ),
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp, top = 4.dp),
+                            style = Typography.bodySmall,
+                        )
+                    }
                 }
             }
         }
@@ -537,22 +583,16 @@ private fun LanguageToLanguage(
     isForTranslation: Boolean = true,
     onClickListener: (String, String) -> Unit = { _, _ -> }
 ) {
-    val langFromCode = LanguageUtils.getLanguageCode(
+    val badgeColor = fetchCardColor(
         languageFrom,
-        LanguageUtils.DETECTION_DICTIONARY
-    )
-    val langToCode = LanguageUtils.getLanguageCode(
         languageTo,
-        LanguageUtils.TRANSLATION_DICTIONARY
+        languageColorMap
     )
-    val languagePair = Pair(langFromCode, langToCode)
-    val badgeColor = languageColorMap[languagePair] ?: PastelBlue
-
     Box(
         modifier = modifier
             .padding(
-                start = if (isForTranslation) 12.dp else 0.dp,
-                top = if (isForTranslation) 12.dp else 0.dp
+                start = if (isForTranslation) 4.dp else 0.dp,
+                top = if (isForTranslation) 4.dp else 0.dp
             )
             .height(24.dp)
             .clip(RoundedCornerShape(12.dp))
@@ -670,6 +710,23 @@ private fun clampValue(value: Int, minValue: Int, maxValue: Int): Int {
         value > maxValue -> maxValue
         else -> value
     }
+}
+
+private fun fetchCardColor(
+    languageFrom: String,
+    languageTo: String,
+    languageColorMap: Map<Pair<String, String>, Color>
+): Color {
+    val langFromCode = LanguageUtils.getLanguageCode(
+        languageFrom,
+        LanguageUtils.DETECTION_DICTIONARY
+    )
+    val langToCode = LanguageUtils.getLanguageCode(
+        languageTo,
+        LanguageUtils.TRANSLATION_DICTIONARY
+    )
+    val languagePair = Pair(langFromCode, langToCode)
+    return languageColorMap[languagePair] ?: PastelBlue
 }
 
 @Composable

@@ -40,7 +40,7 @@ class TranslatorRepository @Inject constructor(
      * @return A [TranslationResults] object that contains the translated text if the translation
      * is successful, or an error message if the translation fails.
      * <br><br> This call to the model has a timeout of 5 seconds. If the model takes longer than
-     * 5 seconds, the operation is terminated and the function returns an error.
+     * 10 seconds, the operation is terminated and the function returns an error.
      * */
     suspend fun translateText(
         text: String,
@@ -55,8 +55,8 @@ class TranslatorRepository @Inject constructor(
         val translator = Translation.getClient(translationOptions)
 
         return try {
-            // Set a timeout of 5 seconds for the translation operation.
-            val result = withTimeoutOrNull(5000L) {
+            // Set a timeout of 10 seconds for the translation operation.
+            val result = withTimeoutOrNull(10000L) {
                 translator.downloadModelIfNeeded().await()
                 translator.translate(text).await()
             }

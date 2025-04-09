@@ -49,7 +49,7 @@ fun Footer(
                 modifier = modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                    .background(color = White)
+                    .background(color = Black)
                     .border(
                         width = 1.dp,
                         color = Black,
@@ -60,13 +60,15 @@ fun Footer(
             ) {
                 ClickableImage(
                     imageId = R.drawable.text_edit,
-                    descriptionId = R.string.text_edit_description
+                    descriptionId = R.string.text_edit_description,
+                    imageTint = White
                 ) {
                     onTabClick(TranslateScreenParams.TEXT_TO_TRANSLATION)
                 }
                 ClickableImage(
                     imageId = R.drawable.photo,
-                    descriptionId = R.string.image_edit_description
+                    descriptionId = R.string.image_edit_description,
+                    imageTint = White
                 ) {
                     onTabClick(TranslateScreenParams.IMAGE_TO_TRANSLATION)
                 }

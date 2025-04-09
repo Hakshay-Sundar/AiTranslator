@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
 import com.numad.aitranslator.navigation.Navigator
 import com.numad.aitranslator.ui.theme.AiTranslatorTheme
@@ -25,6 +28,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        window.statusBarColor = Color.Black.toArgb()
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+        }
+        window.navigationBarColor = Color.Black.toArgb()
+
         setContent {
             AiTranslatorTheme {
                 val navController = rememberNavController()

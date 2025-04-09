@@ -6,7 +6,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,6 +48,7 @@ import com.numad.aitranslator.components.ToastComponent
 import com.numad.aitranslator.components.ToastType
 import com.numad.aitranslator.components.rememberToastState
 import com.numad.aitranslator.dao.GenericResponse
+import com.numad.aitranslator.dao.TranslationResults
 import com.numad.aitranslator.navigation.Screen
 import com.numad.aitranslator.ui.theme.Black
 import com.numad.aitranslator.ui.theme.Typography
@@ -111,8 +110,13 @@ fun TranslatorScreen(
         } else if (languageFrom != null && languageTo != null && inputText.isNotEmpty() &&
             allowTranslation.value && translatedText.isEmpty()
         ) {
-            viewModel.translateText(inputText) {
-                if (!isInitialRender) {
+            viewModel.translateText(inputText) { result ->
+                if (isInitialRender) {
+                    isInitialRender = false
+                    return@translateText
+                }
+
+                if (result is TranslationResults.Success) {
                     viewModel.saveTranslation(
                         inputText,
                         existingTranslationId,
@@ -138,8 +142,6 @@ fun TranslatorScreen(
                             }
                         }
                     )
-                } else {
-                    isInitialRender = false
                 }
             }
         } else if (languageFrom == null) {
@@ -168,40 +170,7 @@ fun TranslatorScreen(
         Column(
             modifier = modifier.fillMaxSize()
         ) {
-            Row(
-                modifier = Modifier
-                    .background(color = White)
-                    .layoutId("header")
-            ) {
-                Box(
-                    modifier = Modifier
-                        .weight(0.2f)
-                        .align(Alignment.CenterVertically)
-                        .clickable {
-                            navController.popBackStack()
-                        }, contentAlignment = Alignment.Center
-                ) {
-                    ClickableImage(
-                        imageId = R.drawable.back_arrow,
-                        descriptionId = R.string.back_button_description
-                    ) {
-                        inputText = ""
-                        shouldPullExistingTranslation = false
-                        allowDetection.value = false
-                        allowTranslation.value = false
-                        isInitialRender = true
-                        onBack(
-                            navController = navController,
-                            viewModel = viewModel
-                        )
-                    }
-                }
-                Box(
-                    modifier = Modifier.weight(0.8f)
-                ) {
-                    Header()
-                }
-            }
+            Header()
             Box(
                 modifier = Modifier.weight(1f)
             ) {
@@ -370,32 +339,34 @@ fun TranslatorScreen(
                         if (inputText.isNotEmpty() && languageFrom != null && languageTo != null) {
                             viewModel.translateText(
                                 inputText,
-                                onCompletion = {
-                                    viewModel.saveTranslation(
-                                        inputText,
-                                        existingTranslationId,
-                                        onCompletion = { response ->
-                                            when (response) {
-                                                is GenericResponse.Success -> {
-                                                    toastState.show(
-                                                        message = context.getString(R.string.translation_saved),
-                                                        type = ToastType.SUCCESS,
-                                                        durationMillis = 3000,
-                                                        onDismiss = {}
-                                                    )
-                                                }
+                                onCompletion = { result ->
+                                    if (result is TranslationResults.Success) {
+                                        viewModel.saveTranslation(
+                                            inputText,
+                                            existingTranslationId,
+                                            onCompletion = { response ->
+                                                when (response) {
+                                                    is GenericResponse.Success -> {
+                                                        toastState.show(
+                                                            message = context.getString(R.string.translation_saved),
+                                                            type = ToastType.SUCCESS,
+                                                            durationMillis = 3000,
+                                                            onDismiss = {}
+                                                        )
+                                                    }
 
-                                                is GenericResponse.Failure -> {
-                                                    toastState.show(
-                                                        message = context.getString(R.string.something_went_wrong),
-                                                        type = ToastType.ERROR,
-                                                        durationMillis = 3000,
-                                                        onDismiss = { }
-                                                    )
+                                                    is GenericResponse.Failure -> {
+                                                        toastState.show(
+                                                            message = context.getString(R.string.something_went_wrong),
+                                                            type = ToastType.ERROR,
+                                                            durationMillis = 3000,
+                                                            onDismiss = { }
+                                                        )
+                                                    }
                                                 }
                                             }
-                                        }
-                                    )
+                                        )
+                                    }
                                 }
                             )
                         } else {

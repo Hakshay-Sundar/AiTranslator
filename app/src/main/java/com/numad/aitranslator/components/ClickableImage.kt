@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,6 +25,7 @@ fun ClickableImage(
     modifier: Modifier = Modifier,
     imageId: Int,
     descriptionId: Int,
+    imageTint: Color = Color.Black,
     onClick: () -> Unit
 ) {
     Box(
@@ -37,7 +40,8 @@ fun ClickableImage(
         Image(
             painter = painterResource(id = imageId),
             contentDescription = stringResource(id = descriptionId),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
+            colorFilter = ColorFilter.tint(imageTint)
         )
     }
 }
