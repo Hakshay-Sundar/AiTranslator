@@ -77,6 +77,7 @@ fun TranslatorScreen(
     val triggerError by viewModel.triggerErrorAlert.collectAsState()
     var shouldPullExistingTranslation by rememberSaveable { mutableStateOf(true) }
     var isInitialRender by rememberSaveable { mutableStateOf(true) }
+    val existingTransId = rememberSaveable { mutableStateOf(existingTranslationId) }
 
     BackHandler {
         inputText = ""
@@ -84,6 +85,7 @@ fun TranslatorScreen(
         allowDetection.value = false
         allowTranslation.value = false
         isInitialRender = true
+        existingTransId.value = null
         onBack(
             navController = navController,
             viewModel = viewModel
@@ -100,9 +102,9 @@ fun TranslatorScreen(
         }
     }
 
-    LaunchedEffect(existingTranslationId, languageTo, languageFrom, inputText) {
-        if (existingTranslationId != null && shouldPullExistingTranslation) {
-            viewModel.fetchExistingTranslationObject(existingTranslationId) {
+    LaunchedEffect(existingTransId, languageTo, languageFrom, inputText) {
+        if (existingTransId.value != null && shouldPullExistingTranslation) {
+            viewModel.fetchExistingTranslationObject(existingTransId.value!!) {
                 inputText = it
                 shouldPullExistingTranslation = false
                 isInitialRender = false
@@ -119,10 +121,11 @@ fun TranslatorScreen(
                 if (result is TranslationResults.Success) {
                     viewModel.saveTranslation(
                         inputText,
-                        existingTranslationId,
+                        existingTransId.value,
                         onCompletion = { response ->
                             when (response) {
                                 is GenericResponse.Success -> {
+                                    existingTransId.value = response.data as? Long
                                     toastState.show(
                                         message = context.getString(R.string.translation_saved),
                                         type = ToastType.SUCCESS,
@@ -286,10 +289,11 @@ fun TranslatorScreen(
                         if (inputText.isNotEmpty() && languageFrom != null) {
                             viewModel.saveTranslation(
                                 inputText,
-                                existingTranslationId
+                                existingTransId.value
                             ) { response ->
                                 when (response) {
                                     is GenericResponse.Success -> {
+                                        existingTransId.value = response.data as? Long
                                         toastState.show(
                                             message = context.getString(R.string.translation_saved),
                                             type = ToastType.SUCCESS,
@@ -299,6 +303,7 @@ fun TranslatorScreen(
                                                 shouldPullExistingTranslation = false
                                                 allowDetection.value = false
                                                 allowTranslation.value = false
+                                                existingTransId.value = null
                                                 isInitialRender = true
                                                 onBack(
                                                     navController = navController,
@@ -343,10 +348,12 @@ fun TranslatorScreen(
                                     if (result is TranslationResults.Success) {
                                         viewModel.saveTranslation(
                                             inputText,
-                                            existingTranslationId,
+                                            existingTransId.value,
                                             onCompletion = { response ->
                                                 when (response) {
                                                     is GenericResponse.Success -> {
+                                                        existingTransId.value =
+                                                            response.data as? Long
                                                         toastState.show(
                                                             message = context.getString(R.string.translation_saved),
                                                             type = ToastType.SUCCESS,

@@ -34,7 +34,7 @@ abstract class AiTranslatorDatabase : RoomDatabase() {
                             DATABASE_NAME
                         )
                             .addMigrations(*Migrations.MIGRATIONS)
-                            .fallbackToDestructiveMigration()
+                            .fallbackToDestructiveMigrationOnDowngrade()
                             .build()
                     }
                 }

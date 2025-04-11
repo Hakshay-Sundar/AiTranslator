@@ -9,7 +9,7 @@ import com.numad.aitranslator.room.entities.TranslationEntity
 @Dao
 interface TranslationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTranslation(translation: TranslationEntity)
+    suspend fun insertTranslation(translation: TranslationEntity) : Long
 
     @Query("UPDATE translations SET text = :text, translated_text = :translatedText, language_from = :languageFrom, language_to = :languageTo, timestamp_millis = :timestampMillis WHERE id = :id")
     suspend fun updateTranslation(

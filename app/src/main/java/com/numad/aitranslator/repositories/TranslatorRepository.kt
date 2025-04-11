@@ -138,8 +138,9 @@ class TranslatorRepository @Inject constructor(
                     timestampMillis = timeStamp,
                     id = existingId
                 )
+                GenericResponse.Success(existingId)
             } else {
-                translationDao.insertTranslation(
+                val saveId = translationDao.insertTranslation(
                     TranslationEntity(
                         text = inputText,
                         translatedText = translatedText,
@@ -148,8 +149,8 @@ class TranslatorRepository @Inject constructor(
                         timestampMillis = timeStamp
                     )
                 )
+                GenericResponse.Success(saveId)
             }
-            GenericResponse.Success()
         } catch (e: Exception) {
             Log.e("TranslatorRepository", "Error saving translation", e)
             GenericResponse.Failure(e.message)
